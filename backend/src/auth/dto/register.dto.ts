@@ -1,7 +1,6 @@
-import { IsString, IsEmail, MinLength, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsEmail, MinLength, IsEnum, IsNotEmpty } from 'class-validator';
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
   CREATOR = 'CREATOR',
   PARTICIPANT = 'PARTICIPANT',
 }
@@ -23,14 +22,21 @@ export class RegisterDto {
 }
 
 export class LoginDto {
-  @IsOptional()
   @IsEmail()
-  email?: string;
-
-  @IsOptional()
-  @IsString()
-  fullName?: string;
+  email: string;
 
   @IsString()
+  @MinLength(6)
   password: string;
+}
+
+export class GoogleLoginDto {
+  @IsString()
+  @IsNotEmpty()
+  idToken: string;
+}
+
+export class SetRoleDto {
+  @IsEnum(UserRole)
+  role: UserRole;
 }

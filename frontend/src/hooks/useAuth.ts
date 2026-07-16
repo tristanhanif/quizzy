@@ -50,7 +50,12 @@ export function useAuth() {
     }
   }, [setAuth, router]);
 
-  const logoutUser = useCallback(() => {
+  const logoutUser = useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // ignore error, clear local state anyway
+    }
     logout();
     router.push('/login');
   }, [logout, router]);

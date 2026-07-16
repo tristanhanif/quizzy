@@ -42,7 +42,7 @@ let CategoriesController = class CategoriesController {
 exports.CategoriesController = CategoriesController;
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_guard_1.Roles)(register_dto_1.UserRole.ADMIN, register_dto_1.UserRole.CREATOR),
+    (0, roles_guard_1.Roles)(register_dto_1.UserRole.CREATOR),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
@@ -65,7 +65,7 @@ __decorate([
 ], CategoriesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, roles_guard_1.Roles)(register_dto_1.UserRole.ADMIN, register_dto_1.UserRole.CREATOR),
+    (0, roles_guard_1.Roles)(register_dto_1.UserRole.CREATOR),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Request)()),
@@ -75,7 +75,7 @@ __decorate([
 ], CategoriesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, roles_guard_1.Roles)(register_dto_1.UserRole.ADMIN, register_dto_1.UserRole.CREATOR),
+    (0, roles_guard_1.Roles)(register_dto_1.UserRole.CREATOR),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Request)()),

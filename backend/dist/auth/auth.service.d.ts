@@ -1,6 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
 import { FirebaseService } from '../firebase/firebase.service';
-import { RegisterDto, LoginDto } from './dto/register.dto';
+import { RegisterDto, LoginDto, GoogleLoginDto, SetRoleDto } from './dto/register.dto';
 export declare class AuthService {
     private readonly firebaseService;
     private readonly jwtService;
@@ -16,7 +16,7 @@ export declare class AuthService {
     login(loginDto: LoginDto): Promise<{
         accessToken: string;
         user: {
-            id: any;
+            id: string;
             name: any;
             role: any;
         };
@@ -26,6 +26,24 @@ export declare class AuthService {
         fullName: any;
         email: any;
         role: any;
+        provider: any;
     }>;
-    private generateToken;
+    googleLogin(dto: GoogleLoginDto): Promise<{
+        accessToken: string;
+        user: {
+            id: string;
+            name: any;
+            role: any;
+            picture: any;
+        };
+        needsRoleSelection: boolean;
+    }>;
+    setRole(userId: string, dto: SetRoleDto): Promise<{
+        success: boolean;
+    }>;
+    generateToken(payload: {
+        sub: string;
+        email: string;
+        role: string;
+    }): string;
 }

@@ -35,7 +35,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
   const [answers, setAnswers] = useState<{ questionId: string; answer: string; score: number }[]>([]);
   const [copied, setCopied] = useState(false);
 
-  const isCreator = user?.role === UserRole.ADMIN || user?.role === UserRole.CREATOR;
+  const isCreator = user?.role === UserRole.CREATOR;
   const isOwner = sessionData?.creatorId === user?.id;
 
   const { namespace } = isCreator && isOwner

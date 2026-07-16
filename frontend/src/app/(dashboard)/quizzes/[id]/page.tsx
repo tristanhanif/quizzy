@@ -18,7 +18,7 @@ export default function QuizDetailPage({ params }: { params: Promise<{ id: strin
   const createSession = useCreateSession();
   const [timeLimit, setTimeLimit] = useState(30);
 
-  const isCreator = user?.role === UserRole.ADMIN || user?.role === UserRole.CREATOR;
+  const isCreator = user?.role === UserRole.CREATOR;
   const isOwner = quiz?.creatorId === user?.id;
 
   const handleCreateSession = async () => {

@@ -1,13 +1,13 @@
-# FILE: backend.prd
+# FILE: backend.md
 # TITLE: Backend Architecture & API Specification
-# VERSION: 1.0.0
+# VERSION: 1.1.0 (Google Auth & Role-based Onboarding Added)
 # TECH_STACK: NestJS, Firebase Admin SDK, Socket.IO, JWT
 
 ---
 
 ## 1. MODULES_ARCHITECTURE
 src/
-├── auth/           # JWT, Guards, Login/Register
+├── auth/           # JWT, Guards, Login/Register/Google-Link
 ├── quizzes/        # Bank Soal, CRUD Quizzes
 ├── sessions/       # Room Management, Pin Generation
 ├── results/        # Leaderboard calculation, History
@@ -18,26 +18,28 @@ src/
 ---
 
 ## 2. DATABASE_SCHEMA_MAP
-- users/              (userId)
-- quizzes/            (quizId) - questions: []
-- quiz_sessions/      (sessionId)
-  - participants/     (sub-collection: userId)
-- quiz_results/       (resultId)
+- users/            (userId) 
+    - email (Unique), role (null|'CREATOR'|'PARTICIPANT'), provider ('manual'|'google'), isLinked (boolean)
+- quizzes/          (quizId)
+- quiz_sessions/    (sessionId)
+- quiz_results/     (resultId)
 
 ---
 
 ## 3. API_CONTRACTS
-# AUTH
-POST /auth/register   -> {fullName, email, password, role}
-POST /auth/login      -> {accessToken, user: {id, name, role}}
+### AUTH
+- POST /auth/register      -> {fullName, email, password, role}
+- POST /auth/login         -> {accessToken, user, role}
+- POST /auth/google-login  -> {idToken} -> {accessToken, user, needsRoleSelection: boolean}
+- POST /auth/set-role      -> {role}    -> {success: boolean} (Required if needsRoleSelection is true)
 
-# QUIZZES
-GET /quizzes          -> {data: Quiz[]}
-POST /quizzes         -> {id, message}
+### QUIZZES
+- GET /quizzes             -> {data: Quiz[]}
+- POST /quizzes            -> {id, message}
 
-# SESSIONS
-POST /sessions        -> {sessionId, roomCode}
-POST /sessions/join   -> {isValid, sessionId, websocketUrl}
+### SESSIONS
+- POST /sessions           -> {sessionId, roomCode}
+- POST /sessions/join      -> {isValid, sessionId, websocketUrl}
 
 ---
 
@@ -56,17 +58,16 @@ NAMESPACE: /participant
 
 ## 5. SECURITY_RULES_GUIDELINES
 - Auth required for all endpoints (JWT Guard).
-- Role-based Access Control (Roles: ADMIN, CREATOR, PARTICIPANT).
+- **Role-based Access Control:** If `user.role` is null, access is restricted to `/auth/set-role` only.
 - Firestore Rules:
   - Users can read/write their own profiles.
-  - Creator can read/write their own quizzes.
-  - Participants only read active session/question state.
+  - `allow update: if request.resource.data.role != resource.data.role && resource.data.role == null`: Prevent role tampering after set.
 
 ---
 
 ## 6. IMPLEMENTATION_ORDER
-1. DTOs & Validation Schemas
-2. Firebase Repository Setup
-3. REST API Controllers
-4. WebSocket Gateways
-5. Security Guards & Interceptors
+1. Update User Firestore Schema (Add `role`, `provider`, `isLinked`).
+2. Implement Firebase Admin Google Token Verification.
+3. Auth Flow: Logic to merge Google Account with existing Email.
+4. Implement `/auth/set-role` endpoint.
+5. Frontend: Onboarding flow (Role selection UI).

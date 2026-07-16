@@ -1,5 +1,4 @@
 export declare enum UserRole {
-    ADMIN = "ADMIN",
     CREATOR = "CREATOR",
     PARTICIPANT = "PARTICIPANT"
 }
@@ -10,7 +9,12 @@ export declare class RegisterDto {
     role: UserRole;
 }
 export declare class LoginDto {
-    email?: string;
-    fullName?: string;
+    email: string;
     password: string;
+}
+export declare class GoogleLoginDto {
+    idToken: string;
+}
+export declare class SetRoleDto {
+    role: UserRole;
 }

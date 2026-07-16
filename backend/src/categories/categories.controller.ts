@@ -23,7 +23,7 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.CREATOR)
+  @Roles(UserRole.CREATOR)
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createCategoryDto: CreateCategoryDto, @Request() req) {
     return this.categoriesService.create(createCategoryDto, req.user.userId);
@@ -40,7 +40,7 @@ export class CategoriesController {
   }
 
   @Put(':id')
-  @Roles(UserRole.ADMIN, UserRole.CREATOR)
+  @Roles(UserRole.CREATOR)
   async update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -55,7 +55,7 @@ export class CategoriesController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.CREATOR)
+  @Roles(UserRole.CREATOR)
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string, @Request() req) {
     return this.categoriesService.remove(id, req.user.userId, req.user.role);

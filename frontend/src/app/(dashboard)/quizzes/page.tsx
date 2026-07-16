@@ -13,7 +13,7 @@ export default function QuizzesPage() {
   const deleteQuiz = useDeleteQuiz();
   const router = useRouter();
 
-  const isCreator = user?.role === UserRole.ADMIN || user?.role === UserRole.CREATOR;
+  const isCreator = user?.role === UserRole.CREATOR;
   const myQuizzes = quizzes?.filter((q) => q.creatorId === user?.id) || [];
 
   return (

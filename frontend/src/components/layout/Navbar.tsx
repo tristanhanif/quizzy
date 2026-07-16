@@ -25,7 +25,7 @@ export default function Navbar() {
             <>
               <div className="hidden md:flex items-center gap-6">
                 <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">Dashboard</Link>
-                {(user.role === UserRole.ADMIN || user.role === UserRole.CREATOR) && (
+                {user.role === UserRole.CREATOR && (
                   <Link href="/quizzes" className="text-sm text-gray-600 hover:text-gray-900">Quizzes</Link>
                 )}
                 <Link href="/results" className="text-sm text-gray-600 hover:text-gray-900">Results</Link>

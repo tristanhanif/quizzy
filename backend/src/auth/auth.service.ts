@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { FirebaseService } from '../firebase/firebase.service';
-import { RegisterDto, LoginDto } from './dto/register.dto';
+import { RegisterDto, LoginDto, GoogleLoginDto, SetRoleDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +38,8 @@ export class AuthService {
       fullName,
       email,
       role,
+      provider: 'manual',
+      isLinked: false,
       password: hashedPassword,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -51,29 +53,15 @@ export class AuthService {
 
     return {
       accessToken: token,
-      user: {
-        id: userRecord.uid,
-        name: fullName,
-        role,
-      },
+      user: { id: userRecord.uid, name: fullName, role },
     };
   }
 
   async login(loginDto: LoginDto) {
-    const { email, fullName, password } = loginDto;
-
-    if (!email && !fullName) {
-      throw new BadRequestException('Email or fullName is required');
-    }
+    const { email, password } = loginDto;
 
     const usersRef = this.firebaseService.firestore.collection('users');
-    let userSnapshot;
-
-    if (email) {
-      userSnapshot = await usersRef.where('email', '==', email).get();
-    } else {
-      userSnapshot = await usersRef.where('fullName', '==', fullName).get();
-    }
+    const userSnapshot = await usersRef.where('email', '==', email).get();
 
     if (userSnapshot.empty) {
       throw new UnauthorizedException('Invalid credentials');
@@ -81,6 +69,10 @@ export class AuthService {
 
     const userDoc = userSnapshot.docs[0];
     const userData = userDoc.data();
+
+    if (!userData.password) {
+      throw new UnauthorizedException('Account uses Google login. Please sign in with Google.');
+    }
 
     const isPasswordValid = await bcrypt.compare(password, userData.password);
 
@@ -96,11 +88,7 @@ export class AuthService {
 
     return {
       accessToken: token,
-      user: {
-        id: userDoc.id,
-        name: userData.fullName,
-        role: userData.role,
-      },
+      user: { id: userDoc.id, name: userData.fullName, role: userData.role },
     };
   }
 
@@ -120,10 +108,111 @@ export class AuthService {
       fullName: userData.fullName,
       email: userData.email,
       role: userData.role,
+      provider: userData.provider,
     };
   }
 
-  private generateToken(payload: { sub: string; email: string; role: string }) {
+  async googleLogin(dto: GoogleLoginDto) {
+    const { idToken } = dto;
+
+    const decodedToken = await this.firebaseService.auth.verifyIdToken(idToken);
+    const { email, name, picture, uid: firebaseUid } = decodedToken;
+
+    if (!email) {
+      throw new BadRequestException('Google account has no email');
+    }
+
+    const usersRef = this.firebaseService.firestore.collection('users');
+    const existingUser = await usersRef.where('email', '==', email).get();
+
+    if (!existingUser.empty) {
+      const userDoc = existingUser.docs[0];
+      const userData = userDoc.data();
+
+      await userDoc.ref.update({
+        provider: userData.provider === 'manual' ? 'manual' : 'google',
+        isLinked: userData.provider === 'manual' ? true : userData.isLinked,
+        googlePicture: picture || userData.googlePicture,
+        updatedAt: new Date(),
+      });
+
+      const needsRoleSelection = userData.role === null;
+
+      const token = this.generateToken({
+        sub: userDoc.id,
+        email,
+        role: userData.role,
+      });
+
+      return {
+        accessToken: token,
+        user: {
+          id: userDoc.id,
+          name: userData.fullName,
+          role: userData.role,
+          picture: picture || userData.googlePicture,
+        },
+        needsRoleSelection,
+      };
+    }
+
+    const userRecord = await this.firebaseService.auth.createUser({
+      email,
+      displayName: name,
+      photoURL: picture,
+    });
+
+    await usersRef.doc(userRecord.uid).set({
+      fullName: name,
+      email,
+      role: null,
+      provider: 'google',
+      isLinked: false,
+      googlePicture: picture || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const token = this.generateToken({
+      sub: userRecord.uid,
+      email,
+      role: null,
+    });
+
+    return {
+      accessToken: token,
+      user: { id: userRecord.uid, name, role: null, picture },
+      needsRoleSelection: true,
+    };
+  }
+
+  async setRole(userId: string, dto: SetRoleDto) {
+    const { role } = dto;
+
+    const userDoc = await this.firebaseService.firestore
+      .collection('users')
+      .doc(userId)
+      .get();
+
+    if (!userDoc.exists) {
+      throw new BadRequestException('User not found');
+    }
+
+    const userData = userDoc.data();
+
+    if (userData.role !== null) {
+      throw new BadRequestException('Role already set');
+    }
+
+    await userDoc.ref.update({
+      role,
+      updatedAt: new Date(),
+    });
+
+    return { success: true };
+  }
+
+  generateToken(payload: { sub: string; email: string; role: string }) {
     return this.jwtService.sign(payload);
   }
 }

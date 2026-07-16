@@ -1,5 +1,4 @@
 export enum UserRole {
-  ADMIN = 'ADMIN',
   CREATOR = 'CREATOR',
   PARTICIPANT = 'PARTICIPANT',
 }
@@ -143,7 +142,6 @@ export interface RegisterPayload {
 }
 
 export interface LoginPayload {
-  email?: string;
-  fullName?: string;
+  email: string;
   password: string;
 }
