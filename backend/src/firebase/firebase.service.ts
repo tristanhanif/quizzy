@@ -14,8 +14,18 @@ export class FirebaseService implements OnModuleInit {
   onModuleInit() {
     try {
       if (!getApps().length) {
+        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || './serviceAccountKey.json';
+
+        if (!fs.existsSync(serviceAccountPath)) {
+          this.logger.warn(
+            `Firebase service account key not found at "${serviceAccountPath}". ` +
+            `Firebase features will be unavailable. Download it from Firebase Console > Project Settings > Service Accounts.`,
+          );
+          return;
+        }
+
         const serviceAccount = JSON.parse(
-          fs.readFileSync('./serviceAccountKey.json', 'utf8'),
+          fs.readFileSync(serviceAccountPath, 'utf8'),
         );
 
         this.app = initializeApp({

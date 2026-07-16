@@ -20,7 +20,13 @@ let FirebaseService = FirebaseService_1 = class FirebaseService {
     onModuleInit() {
         try {
             if (!(0, app_1.getApps)().length) {
-                const serviceAccount = JSON.parse(fs.readFileSync('./serviceAccountKey.json', 'utf8'));
+                const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || './serviceAccountKey.json';
+                if (!fs.existsSync(serviceAccountPath)) {
+                    this.logger.warn(`Firebase service account key not found at "${serviceAccountPath}". ` +
+                        `Firebase features will be unavailable. Download it from Firebase Console > Project Settings > Service Accounts.`);
+                    return;
+                }
+                const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
                 this.app = (0, app_1.initializeApp)({
                     credential: (0, app_1.cert)(serviceAccount),
                     projectId: process.env.FIREBASE_PROJECT_ID,
