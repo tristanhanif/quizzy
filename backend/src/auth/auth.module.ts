@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 import { FirebaseModule } from '../firebase/firebase.module';
 import { RoleIncompleteGuard } from './guards/role-incomplete.guard';
 
@@ -21,6 +22,7 @@ import { RoleIncompleteGuard } from './guards/role-incomplete.guard';
   providers: [
     AuthService,
     JwtStrategy,
+    GoogleStrategy,
     {
       provide: APP_GUARD,
       useClass: RoleIncompleteGuard,

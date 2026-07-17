@@ -12,7 +12,7 @@ import {
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, GoogleLoginDto, SetRoleDto } from './dto/register.dto';
+import { RegisterDto, LoginDto, SetRoleDto } from './dto/register.dto';
 import { SkipRoleCheck } from '../common/decorators/skip-role-check.decorator';
 
 const COOKIE_OPTIONS = {
@@ -51,13 +51,18 @@ export class AuthController {
     return this.authService.getProfile(req.user.userId);
   }
 
-  @Post('google-login')
+  @Get('google')
   @SkipRoleCheck()
-  @HttpCode(HttpStatus.OK)
-  async googleLogin(@Body() dto: GoogleLoginDto, @Res({ passthrough: true }) res: Response) {
-    const result = await this.authService.googleLogin(dto);
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
+
+  @Get('google/callback')
+  @SkipRoleCheck()
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(@Request() req, @Res() res: Response) {
+    const result = await this.authService.handleGoogleUser(req.user);
     res.cookie('quizzy_access_token', result.accessToken, COOKIE_OPTIONS);
-    return result;
+    res.redirect('http://localhost:3001/dashboard');
   }
 
   @Post('logout')

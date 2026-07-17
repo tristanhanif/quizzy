@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { FirebaseService } from '../firebase/firebase.service';
-import { RegisterDto, LoginDto, GoogleLoginDto, SetRoleDto } from './dto/register.dto';
+import { RegisterDto, LoginDto, SetRoleDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -112,11 +112,8 @@ export class AuthService {
     };
   }
 
-  async googleLogin(dto: GoogleLoginDto) {
-    const { idToken } = dto;
-
-    const decodedToken = await this.firebaseService.auth.verifyIdToken(idToken);
-    const { email, name, picture, uid: firebaseUid } = decodedToken;
+  async handleGoogleUser(profile: { googleId: string; email: string; name: string; picture?: string }) {
+    const { email, name, picture } = profile;
 
     if (!email) {
       throw new BadRequestException('Google account has no email');
