@@ -47,12 +47,12 @@ let AuthController = class AuthController {
         res.cookie('quizzy_access_token', result.accessToken, COOKIE_OPTIONS);
         return result;
     }
+    async setRole(req, dto) {
+        return this.authService.setRole(req.user.userId, dto);
+    }
     async logout(res) {
         res.clearCookie('quizzy_access_token', { path: '/' });
         return { message: 'Logged out successfully' };
-    }
-    async setRole(req, dto) {
-        return this.authService.setRole(req.user.userId, dto);
     }
 };
 exports.AuthController = AuthController;
@@ -91,17 +91,9 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [register_dto_1.GoogleLoginDto, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "googleLogin", null);
-__decorate([
-    (0, common_1.Post)('logout'),
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    __param(0, (0, common_1.Res)({ passthrough: true })),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "logout", null);
 __decorate([
     (0, common_1.Post)('set-role'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
@@ -112,6 +104,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, register_dto_1.SetRoleDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "setRole", null);
+__decorate([
+    (0, common_1.Post)('logout'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "logout", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

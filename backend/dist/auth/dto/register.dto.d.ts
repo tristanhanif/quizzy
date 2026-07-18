@@ -12,9 +12,6 @@ export declare class LoginDto {
     email: string;
     password: string;
 }
-export declare class GoogleLoginDto {
-    idToken: string;
-}
 export declare class SetRoleDto {
     role: UserRole;
 }

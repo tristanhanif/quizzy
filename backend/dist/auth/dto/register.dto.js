@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SetRoleDto = exports.GoogleLoginDto = exports.LoginDto = exports.RegisterDto = exports.UserRole = void 0;
+exports.SetRoleDto = exports.LoginDto = exports.RegisterDto = exports.UserRole = void 0;
 const class_validator_1 = require("class-validator");
 var UserRole;
 (function (UserRole) {
@@ -49,14 +49,6 @@ __decorate([
     (0, class_validator_1.MinLength)(6),
     __metadata("design:type", String)
 ], LoginDto.prototype, "password", void 0);
-class GoogleLoginDto {
-}
-exports.GoogleLoginDto = GoogleLoginDto;
-__decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], GoogleLoginDto.prototype, "idToken", void 0);
 class SetRoleDto {
 }
 exports.SetRoleDto = SetRoleDto;

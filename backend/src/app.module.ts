@@ -8,6 +8,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { ResultsModule } from './results/results.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { CategoriesModule } from './categories/categories.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CategoriesModule } from './categories/categories.module';
     ResultsModule,
     GatewayModule,
     CategoriesModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { FirebaseService } from '../firebase/firebase.service';
 import { RegisterDto, LoginDto, SetRoleDto } from './dto/register.dto';
+import { generateDisplayId } from '../common/utils/display-id';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const displayId = generateDisplayId(role);
 
     const userRecord = await this.firebaseService.auth.createUser({
       email,
@@ -38,6 +40,7 @@ export class AuthService {
       fullName,
       email,
       role,
+      displayId,
       provider: 'manual',
       isLinked: false,
       password: hashedPassword,
@@ -53,7 +56,7 @@ export class AuthService {
 
     return {
       accessToken: token,
-      user: { id: userRecord.uid, name: fullName, role },
+      user: { id: userRecord.uid, name: fullName, role, displayId },
     };
   }
 
@@ -88,7 +91,7 @@ export class AuthService {
 
     return {
       accessToken: token,
-      user: { id: userDoc.id, name: userData.fullName, role: userData.role },
+      user: { id: userDoc.id, name: userData.fullName, role: userData.role, displayId: userData.displayId },
     };
   }
 
@@ -108,12 +111,16 @@ export class AuthService {
       fullName: userData.fullName,
       email: userData.email,
       role: userData.role,
+      displayId: userData.displayId,
       provider: userData.provider,
     };
   }
 
-  async handleGoogleUser(profile: { googleId: string; email: string; name: string; picture?: string }) {
-    const { email, name, picture } = profile;
+  async googleLogin(dto: { idToken: string }) {
+    const { idToken } = dto;
+
+    const decodedToken = await this.firebaseService.auth.verifyIdToken(idToken);
+    const { email, name, picture, uid: firebaseUid } = decodedToken;
 
     if (!email) {
       throw new BadRequestException('Google account has no email');
@@ -147,6 +154,7 @@ export class AuthService {
           id: userDoc.id,
           name: userData.fullName,
           role: userData.role,
+          displayId: userData.displayId,
           picture: picture || userData.googlePicture,
         },
         needsRoleSelection,
@@ -163,6 +171,7 @@ export class AuthService {
       fullName: name,
       email,
       role: null,
+      displayId: null,
       provider: 'google',
       isLinked: false,
       googlePicture: picture || null,
@@ -178,7 +187,7 @@ export class AuthService {
 
     return {
       accessToken: token,
-      user: { id: userRecord.uid, name, role: null, picture },
+      user: { id: userRecord.uid, name, role: null, displayId: null, picture },
       needsRoleSelection: true,
     };
   }
@@ -201,12 +210,15 @@ export class AuthService {
       throw new BadRequestException('Role already set');
     }
 
+    const displayId = generateDisplayId(role);
+
     await userDoc.ref.update({
       role,
+      displayId,
       updatedAt: new Date(),
     });
 
-    return { success: true };
+    return { success: true, displayId };
   }
 
   generateToken(payload: { sub: string; email: string; role: string }) {

@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = require("bcrypt");
 const firebase_service_1 = require("../firebase/firebase.service");
+const display_id_1 = require("../common/utils/display-id");
 let AuthService = class AuthService {
     constructor(firebaseService, jwtService) {
         this.firebaseService = firebaseService;
@@ -27,6 +28,7 @@ let AuthService = class AuthService {
             throw new common_1.ConflictException('Email already registered');
         }
         const hashedPassword = await bcrypt.hash(password, 10);
+        const displayId = (0, display_id_1.generateDisplayId)(role);
         const userRecord = await this.firebaseService.auth.createUser({
             email,
             password,
@@ -36,6 +38,7 @@ let AuthService = class AuthService {
             fullName,
             email,
             role,
+            displayId,
             provider: 'manual',
             isLinked: false,
             password: hashedPassword,
@@ -49,7 +52,7 @@ let AuthService = class AuthService {
         });
         return {
             accessToken: token,
-            user: { id: userRecord.uid, name: fullName, role },
+            user: { id: userRecord.uid, name: fullName, role, displayId },
         };
     }
     async login(loginDto) {
@@ -75,7 +78,7 @@ let AuthService = class AuthService {
         });
         return {
             accessToken: token,
-            user: { id: userDoc.id, name: userData.fullName, role: userData.role },
+            user: { id: userDoc.id, name: userData.fullName, role: userData.role, displayId: userData.displayId },
         };
     }
     async getProfile(userId) {
@@ -92,6 +95,7 @@ let AuthService = class AuthService {
             fullName: userData.fullName,
             email: userData.email,
             role: userData.role,
+            displayId: userData.displayId,
             provider: userData.provider,
         };
     }
@@ -125,6 +129,7 @@ let AuthService = class AuthService {
                     id: userDoc.id,
                     name: userData.fullName,
                     role: userData.role,
+                    displayId: userData.displayId,
                     picture: picture || userData.googlePicture,
                 },
                 needsRoleSelection,
@@ -139,6 +144,7 @@ let AuthService = class AuthService {
             fullName: name,
             email,
             role: null,
+            displayId: null,
             provider: 'google',
             isLinked: false,
             googlePicture: picture || null,
@@ -152,7 +158,7 @@ let AuthService = class AuthService {
         });
         return {
             accessToken: token,
-            user: { id: userRecord.uid, name, role: null, picture },
+            user: { id: userRecord.uid, name, role: null, displayId: null, picture },
             needsRoleSelection: true,
         };
     }
@@ -169,11 +175,13 @@ let AuthService = class AuthService {
         if (userData.role !== null) {
             throw new common_1.BadRequestException('Role already set');
         }
+        const displayId = (0, display_id_1.generateDisplayId)(role);
         await userDoc.ref.update({
             role,
+            displayId,
             updatedAt: new Date(),
         });
-        return { success: true };
+        return { success: true, displayId };
     }
     generateToken(payload) {
         return this.jwtService.sign(payload);

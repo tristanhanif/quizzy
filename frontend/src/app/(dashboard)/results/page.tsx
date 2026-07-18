@@ -18,10 +18,13 @@ export default function ResultsPage() {
   const { user } = useAuthStore();
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Results & Leaderboard</h1>
+    <div className="max-w-2xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Hasil & Leaderboard</h1>
+        <p className="mt-1 text-sm text-gray-500">Cari hasil berdasarkan sesi quiz</p>
+      </div>
 
-      <Card>
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -31,26 +34,50 @@ export default function ResultsPage() {
         >
           <div className="flex-1">
             <Input
-              label="Session ID"
-              placeholder="Enter session ID..."
+              label="ID Sesi"
+              placeholder="Masukkan ID sesi..."
               value={sessionId}
               onChange={(e) => setSessionId(e.target.value)}
             />
           </div>
-          <Button type="submit" disabled={!sessionId}>
-            Search
-          </Button>
+          <button
+            type="submit"
+            disabled={!sessionId}
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed mb-[1px]"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            Cari
+          </button>
         </form>
-      </Card>
+      </div>
 
       {queryId && (
         isLoading ? (
-          <div className="text-center py-12 text-gray-500">Loading leaderboard...</div>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white py-16 shadow-sm">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+            <p className="mt-4 text-sm text-gray-400">Memuat leaderboard...</p>
+          </div>
         ) : leaderboard ? (
           <Leaderboard entries={leaderboard} currentUserId={user?.id} />
         ) : (
-          <p className="text-center py-12 text-gray-500">No results found for this session.</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 py-16">
+            <svg className="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <p className="mt-3 text-sm font-medium text-gray-400">Tidak ada hasil ditemukan untuk sesi ini</p>
+          </div>
         )
+      )}
+
+      {!queryId && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 py-16">
+          <svg className="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <p className="mt-3 text-sm font-medium text-gray-400">Masukkan ID sesi untuk melihat hasil</p>
+        </div>
       )}
     </div>
   );

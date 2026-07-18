@@ -6,14 +6,43 @@ export enum UserRole {
 export interface User {
   id: string;
   name: string;
-  role: UserRole;
+  role: UserRole | null;
+  displayId?: string | null;
   fullName?: string;
   email?: string;
+  picture?: string;
+  provider?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  displayId: string;
+  role: UserRole;
+  picture?: string;
+  email?: string;
+  provider?: string;
+  createdAt: string;
+}
+
+export interface MutualStatus {
+  status: 'none' | 'pending' | 'accepted' | 'declined';
+  mutualId: string | null;
+  requestedBy?: string;
+}
+
+export interface MutualUser {
+  id: string;
+  name: string;
+  displayId: string;
+  role: UserRole;
+  picture?: string;
 }
 
 export interface AuthResponse {
   accessToken: string;
   user: User;
+  needsRoleSelection?: boolean;
 }
 
 export enum QuestionType {

@@ -51,25 +51,13 @@ export class AuthController {
     return this.authService.getProfile(req.user.userId);
   }
 
-  @Get('google')
+  @Post('google-login')
   @SkipRoleCheck()
-  @UseGuards(AuthGuard('google'))
-  async googleAuth() {}
-
-  @Get('google/callback')
-  @SkipRoleCheck()
-  @UseGuards(AuthGuard('google'))
-  async googleCallback(@Request() req, @Res() res: Response) {
-    const result = await this.authService.handleGoogleUser(req.user);
-    res.cookie('quizzy_access_token', result.accessToken, COOKIE_OPTIONS);
-    res.redirect('http://localhost:3001/dashboard');
-  }
-
-  @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('quizzy_access_token', { path: '/' });
-    return { message: 'Logged out successfully' };
+  async googleLogin(@Body() dto: { idToken: string }, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.googleLogin(dto);
+    res.cookie('quizzy_access_token', result.accessToken, COOKIE_OPTIONS);
+    return result;
   }
 
   @Post('set-role')
@@ -77,5 +65,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async setRole(@Request() req, @Body() dto: SetRoleDto) {
     return this.authService.setRole(req.user.userId, dto);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('quizzy_access_token', { path: '/' });
+    return { message: 'Logged out successfully' };
   }
 }

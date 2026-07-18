@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/auth.service';
-import { ROUTES } from '@/utils/constants';
 import type { LoginPayload, RegisterPayload } from '@/types';
 import { useState, useCallback } from 'react';
 
@@ -20,12 +19,7 @@ export function useAuth() {
       const response = await authService.login(payload);
       const { accessToken, user: userData } = response.data;
       setAuth(userData, accessToken);
-
-      if (userData.role === 'PARTICIPANT') {
-        router.push('/dashboard');
-      } else {
-        router.push('/dashboard');
-      }
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
       throw err;
@@ -50,6 +44,25 @@ export function useAuth() {
     }
   }, [setAuth, router]);
 
+  const setRole = useCallback(async (role: string) => {
+    try {
+      setError(null);
+      setIsPending(true);
+      const response = await authService.setRole(role);
+      const displayId = response.data.displayId;
+      if (user) {
+        const updatedUser = { ...user, role: role as any, displayId };
+        setAuth(updatedUser, token!);
+      }
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to set role');
+      throw err;
+    } finally {
+      setIsPending(false);
+    }
+  }, [user, token, setAuth, router]);
+
   const logoutUser = useCallback(async () => {
     try {
       await authService.logout();
@@ -60,5 +73,5 @@ export function useAuth() {
     router.push('/login');
   }, [logout, router]);
 
-  return { user, token, isLoading, isPending, error, login, register, logout: logoutUser };
+  return { user, token, isLoading, isPending, error, login, register, setRole, logout: logoutUser };
 }

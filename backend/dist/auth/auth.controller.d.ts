@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, GoogleLoginDto, SetRoleDto } from './dto/register.dto';
+import { RegisterDto, LoginDto, SetRoleDto } from './dto/register.dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -10,6 +10,7 @@ export declare class AuthController {
             id: string;
             name: string;
             role: import("./dto/register.dto").UserRole;
+            displayId: string;
         };
     }>;
     login(loginDto: LoginDto, res: Response): Promise<{
@@ -18,6 +19,7 @@ export declare class AuthController {
             id: string;
             name: any;
             role: any;
+            displayId: any;
         };
     }>;
     getProfile(req: any): Promise<{
@@ -25,22 +27,27 @@ export declare class AuthController {
         fullName: any;
         email: any;
         role: any;
+        displayId: any;
         provider: any;
     }>;
-    googleLogin(dto: GoogleLoginDto, res: Response): Promise<{
+    googleLogin(dto: {
+        idToken: string;
+    }, res: Response): Promise<{
         accessToken: string;
         user: {
             id: string;
             name: any;
             role: any;
+            displayId: any;
             picture: any;
         };
         needsRoleSelection: boolean;
     }>;
-    logout(res: Response): Promise<{
-        message: string;
-    }>;
     setRole(req: any, dto: SetRoleDto): Promise<{
         success: boolean;
+        displayId: string;
+    }>;
+    logout(res: Response): Promise<{
+        message: string;
     }>;
 }

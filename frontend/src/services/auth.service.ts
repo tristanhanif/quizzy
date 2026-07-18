@@ -12,6 +12,16 @@ export const authService = {
     return data;
   },
 
+  async googleLogin(idToken: string): Promise<ApiResponse<AuthResponse>> {
+    const { data } = await api.post('/auth/google-login', { idToken });
+    return data;
+  },
+
+  async setRole(role: string): Promise<ApiResponse<{ success: boolean; displayId: string }>> {
+    const { data } = await api.post('/auth/set-role', { role });
+    return data;
+  },
+
   async getProfile(): Promise<ApiResponse<User>> {
     const { data } = await api.get('/auth/profile');
     return data;
