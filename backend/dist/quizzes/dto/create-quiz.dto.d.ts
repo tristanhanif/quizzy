@@ -13,10 +13,12 @@ export declare class CreateQuestionDto {
 export declare class CreateQuizDto {
     title: string;
     description: string;
+    isPublic: boolean;
     questions: CreateQuestionDto[];
 }
 export declare class UpdateQuizDto {
     title?: string;
     description?: string;
+    isPublic?: boolean;
     questions?: CreateQuestionDto[];
 }

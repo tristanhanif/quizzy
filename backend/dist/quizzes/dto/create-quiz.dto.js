@@ -59,6 +59,10 @@ __decorate([
     __metadata("design:type", String)
 ], CreateQuizDto.prototype, "description", void 0);
 __decorate([
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateQuizDto.prototype, "isPublic", void 0);
+__decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ValidateNested)({ each: true }),
     (0, class_transformer_1.Type)(() => CreateQuestionDto),
@@ -76,6 +80,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateQuizDto.prototype, "description", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateQuizDto.prototype, "isPublic", void 0);
 __decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ValidateNested)({ each: true }),

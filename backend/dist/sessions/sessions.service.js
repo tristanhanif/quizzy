@@ -196,10 +196,15 @@ let SessionsService = class SessionsService {
         const snapshot = await this.firebaseService.firestore
             .collection('quiz_sessions')
             .where('creatorId', '==', creatorId)
-            .orderBy('createdAt', 'desc')
             .get();
-        const sessions = await Promise.all(snapshot.docs.map(async (doc) => {
-            const data = doc.data();
+        const sortedDocs = snapshot.docs
+            .map((doc) => ({ doc, data: doc.data() }))
+            .sort((a, b) => {
+            const aTime = a.data.createdAt?.seconds || 0;
+            const bTime = b.data.createdAt?.seconds || 0;
+            return bTime - aTime;
+        });
+        const sessions = await Promise.all(sortedDocs.map(async ({ doc, data }) => {
             let quizTitle = '';
             try {
                 const quizDoc = await this.firebaseService.firestore

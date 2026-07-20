@@ -10,6 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
 import { SessionsService } from '../../sessions/sessions.service';
 import { QuizzesService } from '../../quizzes/quizzes.service';
 import { ResultsService } from '../../results/results.service';
@@ -41,7 +42,19 @@ export class HostGateway
   }
 
   handleConnection(client: Socket) {
-    this.logger.log(`Host connected: ${client.id}`);
+    try {
+      const token = client.handshake.auth?.token;
+      if (token) {
+        const payload = jwt.verify(token, process.env.JWT_SECRET || 'quizzy-secret-key') as any;
+        client.data.userId = payload.sub;
+        this.logger.log(`Host connected: ${client.id} (user: ${client.data.userId})`);
+      } else {
+        this.logger.warn(`Host connected without token: ${client.id}`);
+      }
+    } catch (err) {
+      this.logger.error(`Host auth failed: ${err.message}`);
+      client.disconnect();
+    }
   }
 
   handleDisconnect(client: Socket) {

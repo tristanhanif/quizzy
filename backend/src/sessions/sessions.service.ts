@@ -223,15 +223,24 @@ export class SessionsService {
   }
 
   async findByCreatorId(creatorId: string) {
+    // 1. Ambil snapshot tanpa .orderBy() langsung di Firestore agar tidak perlu composite index
     const snapshot = await this.firebaseService.firestore
       .collection('quiz_sessions')
       .where('creatorId', '==', creatorId)
-      .orderBy('createdAt', 'desc')
       .get();
 
+    // 2. Lakukan sorting manual berdasarkan createdAt di memori
+    const sortedDocs = snapshot.docs
+      .map((doc) => ({ doc, data: doc.data() }))
+      .sort((a, b) => {
+        const aTime = a.data.createdAt?.seconds || 0;
+        const bTime = b.data.createdAt?.seconds || 0;
+        return bTime - aTime;
+      });
+
+    // 3. Map hasilnya untuk mengambil data quizTitle secara async
     const sessions = await Promise.all(
-      snapshot.docs.map(async (doc) => {
-        const data = doc.data();
+      sortedDocs.map(async ({ doc, data }) => {
         let quizTitle = '';
         try {
           const quizDoc = await this.firebaseService.firestore

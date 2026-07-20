@@ -17,6 +17,7 @@ exports.ParticipantGateway = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const common_1 = require("@nestjs/common");
+const jwt = require("jsonwebtoken");
 const sessions_service_1 = require("../../sessions/sessions.service");
 const results_service_1 = require("../../results/results.service");
 let ParticipantGateway = ParticipantGateway_1 = class ParticipantGateway {
@@ -30,7 +31,21 @@ let ParticipantGateway = ParticipantGateway_1 = class ParticipantGateway {
         this.logger.log('Participant Gateway initialized');
     }
     handleConnection(client) {
-        this.logger.log(`Participant connected: ${client.id}`);
+        try {
+            const token = client.handshake.auth?.token;
+            if (token) {
+                const payload = jwt.verify(token, process.env.JWT_SECRET || 'quizzy-secret-key');
+                client.data.userId = payload.sub;
+                this.logger.log(`Participant connected: ${client.id} (user: ${client.data.userId})`);
+            }
+            else {
+                this.logger.warn(`Participant connected without token: ${client.id}`);
+            }
+        }
+        catch (err) {
+            this.logger.error(`Participant auth failed: ${err.message}`);
+            client.disconnect();
+        }
     }
     handleDisconnect(client) {
         this.logger.log(`Participant disconnected: ${client.id}`);
@@ -46,7 +61,7 @@ let ParticipantGateway = ParticipantGateway_1 = class ParticipantGateway {
             client.join(roomCode);
             this.participantRooms.set(client.id, roomCode);
             this.server.to(roomCode).emit('participant_joined', {
-                userId,
+                participantId: userId,
                 participantCount: session.participants.length,
             });
             return { success: true, message: 'Joined room' };

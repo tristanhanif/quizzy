@@ -1,5 +1,12 @@
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+export function formatDate(dateValue: any): string {
+  if (!dateValue) return '-';
+  let date: Date;
+  if (dateValue?.seconds) {
+    date = new Date(dateValue.seconds * 1000);
+  } else {
+    date = new Date(dateValue);
+  }
+  if (isNaN(date.getTime())) return '-';
   return new Intl.DateTimeFormat('id-ID', {
     day: 'numeric',
     month: 'long',

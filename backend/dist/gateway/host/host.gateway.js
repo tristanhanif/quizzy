@@ -17,6 +17,7 @@ exports.HostGateway = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const common_1 = require("@nestjs/common");
+const jwt = require("jsonwebtoken");
 const sessions_service_1 = require("../../sessions/sessions.service");
 const quizzes_service_1 = require("../../quizzes/quizzes.service");
 const results_service_1 = require("../../results/results.service");
@@ -33,7 +34,21 @@ let HostGateway = HostGateway_1 = class HostGateway {
         this.logger.log('Host Gateway initialized');
     }
     handleConnection(client) {
-        this.logger.log(`Host connected: ${client.id}`);
+        try {
+            const token = client.handshake.auth?.token;
+            if (token) {
+                const payload = jwt.verify(token, process.env.JWT_SECRET || 'quizzy-secret-key');
+                client.data.userId = payload.sub;
+                this.logger.log(`Host connected: ${client.id} (user: ${client.data.userId})`);
+            }
+            else {
+                this.logger.warn(`Host connected without token: ${client.id}`);
+            }
+        }
+        catch (err) {
+            this.logger.error(`Host auth failed: ${err.message}`);
+            client.disconnect();
+        }
     }
     handleDisconnect(client) {
         this.logger.log(`Host disconnected: ${client.id}`);

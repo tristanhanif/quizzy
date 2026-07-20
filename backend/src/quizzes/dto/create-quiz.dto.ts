@@ -45,6 +45,9 @@ export class CreateQuizDto {
   @IsString()
   description: string;
 
+  @IsBoolean()
+  isPublic: boolean;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateQuestionDto)
@@ -58,6 +61,9 @@ export class UpdateQuizDto {
 
   @IsString()
   description?: string;
+
+  @IsBoolean()
+  isPublic?: boolean;
 
   @IsArray()
   @ValidateNested({ each: true })

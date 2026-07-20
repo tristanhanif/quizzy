@@ -26,6 +26,7 @@ let QuizzesService = class QuizzesService {
             creatorId,
             title: createQuizDto.title,
             description: createQuizDto.description,
+            isPublic: createQuizDto.isPublic ?? true,
             questions,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -79,6 +80,8 @@ let QuizzesService = class QuizzesService {
             updateData.title = updateQuizDto.title;
         if (updateQuizDto.description)
             updateData.description = updateQuizDto.description;
+        if (updateQuizDto.isPublic !== undefined)
+            updateData.isPublic = updateQuizDto.isPublic;
         if (updateQuizDto.questions)
             updateData.questions = updateQuizDto.questions;
         await this.firebaseService.firestore.collection('quizzes').doc(id).update(updateData);
