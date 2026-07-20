@@ -62,6 +62,39 @@ export class HostGateway
     this.hostRooms.delete(client.id);
   }
 
+  @SubscribeMessage('join_room')
+  async handleJoinRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { roomCode: string; userId: string },
+  ) {
+    try {
+      const { roomCode, userId } = data;
+
+      const session = await this.sessionsService.findByRoomCode(roomCode);
+
+      if (session.creatorId !== userId) {
+        return { error: 'Only the session creator can join as host' };
+      }
+
+      client.join(roomCode);
+      this.hostRooms.set(client.id, roomCode);
+
+      const participants = (session.participants || []).map((p: string) => ({
+        id: p,
+        name: `Peserta`,
+      }));
+
+      return {
+        success: true,
+        message: 'Host joined room',
+        participants,
+        participantCount: participants.length,
+      };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
   @SubscribeMessage('start_quiz')
   async handleStartQuiz(
     @ConnectedSocket() client: Socket,

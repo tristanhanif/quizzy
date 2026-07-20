@@ -14,6 +14,22 @@ export declare class HostGateway implements OnGatewayInit, OnGatewayConnection, 
     afterInit(server: Server): void;
     handleConnection(client: Socket): void;
     handleDisconnect(client: Socket): void;
+    handleJoinRoom(client: Socket, data: {
+        roomCode: string;
+        userId: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+        participants: any;
+        participantCount: any;
+        error?: undefined;
+    } | {
+        error: any;
+        success?: undefined;
+        message?: undefined;
+        participants?: undefined;
+        participantCount?: undefined;
+    }>;
     handleStartQuiz(client: Socket, data: {
         roomCode: string;
     }): Promise<{

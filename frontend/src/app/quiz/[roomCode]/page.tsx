@@ -108,7 +108,18 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
   useEffect(() => {
     if (!isConnected || !user || !sessionData) return;
 
-    if (!isCreator || !isOwner) {
+    if (isCreator && isOwner) {
+      emit('join_room', { roomCode, userId: user.id }, (response: any) => {
+        if (response?.error) {
+          console.error('Error joining room as host:', response.error);
+          return;
+        }
+        if (response?.participants) {
+          setParticipants(response.participants);
+          setParticipantCount(response.participantCount || 0);
+        }
+      });
+    } else {
       (async () => {
         try {
           await sessionService.join(roomCode);

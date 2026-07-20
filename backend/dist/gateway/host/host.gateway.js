@@ -54,6 +54,30 @@ let HostGateway = HostGateway_1 = class HostGateway {
         this.logger.log(`Host disconnected: ${client.id}`);
         this.hostRooms.delete(client.id);
     }
+    async handleJoinRoom(client, data) {
+        try {
+            const { roomCode, userId } = data;
+            const session = await this.sessionsService.findByRoomCode(roomCode);
+            if (session.creatorId !== userId) {
+                return { error: 'Only the session creator can join as host' };
+            }
+            client.join(roomCode);
+            this.hostRooms.set(client.id, roomCode);
+            const participants = (session.participants || []).map((p) => ({
+                id: p,
+                name: `Peserta`,
+            }));
+            return {
+                success: true,
+                message: 'Host joined room',
+                participants,
+                participantCount: participants.length,
+            };
+        }
+        catch (error) {
+            return { error: error.message };
+        }
+    }
     async handleStartQuiz(client, data) {
         try {
             const { roomCode } = data;
@@ -136,6 +160,14 @@ __decorate([
     (0, websockets_1.WebSocketServer)(),
     __metadata("design:type", socket_io_1.Server)
 ], HostGateway.prototype, "server", void 0);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('join_room'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", Promise)
+], HostGateway.prototype, "handleJoinRoom", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('start_quiz'),
     __param(0, (0, websockets_1.ConnectedSocket)()),

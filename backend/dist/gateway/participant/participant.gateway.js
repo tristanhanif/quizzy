@@ -60,10 +60,12 @@ let ParticipantGateway = ParticipantGateway_1 = class ParticipantGateway {
             }
             client.join(roomCode);
             this.participantRooms.set(client.id, roomCode);
-            this.server.to(roomCode).emit('participant_joined', {
+            const participantData = {
                 participantId: userId,
                 participantCount: session.participants.length,
-            });
+            };
+            this.server.to(roomCode).emit('participant_joined', participantData);
+            this.server.of('/host').to(roomCode).emit('participant_joined', participantData);
             return { success: true, message: 'Joined room' };
         }
         catch (error) {
