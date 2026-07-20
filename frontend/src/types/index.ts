@@ -1,4 +1,5 @@
 export enum UserRole {
+  ADMIN = 'ADMIN',
   CREATOR = 'CREATOR',
   PARTICIPANT = 'PARTICIPANT',
 }
@@ -66,6 +67,7 @@ export interface Quiz {
   title: string;
   description: string;
   questions: Question[];
+  isPublic?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -147,6 +149,7 @@ export interface ApiError {
 export interface CreateQuizPayload {
   title: string;
   description: string;
+  isPublic?: boolean;
   questions: Omit<Question, 'questionId'>[];
 }
 

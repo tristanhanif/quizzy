@@ -27,11 +27,18 @@ export default function QuizCard({ quiz, onClick, actions }: QuizCardProps) {
         <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 group-hover:text-indigo-600 transition-colors">{quiz.title}</h3>
         <p className="text-sm text-gray-500 mt-1 mb-4 line-clamp-2">{truncateText(quiz.description, 100)}</p>
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-1.5 text-sm text-gray-500">
-            <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-            </svg>
-            {quiz.questions.length} pertanyaan
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 text-sm text-gray-500">
+              <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+              </svg>
+              {quiz.questions.length} pertanyaan
+            </div>
+            {quiz.isPublic === false && (
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                Privat
+              </span>
+            )}
           </div>
           <span className="text-xs text-gray-400">{formatDate(quiz.createdAt)}</span>
         </div>

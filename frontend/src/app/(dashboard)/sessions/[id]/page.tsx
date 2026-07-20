@@ -2,9 +2,7 @@
 
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession, useSessionByRoomCode } from '@/hooks/useQuiz';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { useSession } from '@/hooks/useQuiz';
 import { SessionStatus } from '@/types';
 
 export default function SessionDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -124,15 +122,26 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
       )}
 
       {session.status === SessionStatus.FINISHED && (
-        <button
-          onClick={() => router.push(`/results?sessionId=${session.id}`)}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-indigo-200 bg-indigo-50 px-6 py-4 text-base font-semibold text-indigo-700 transition-all duration-200 hover:bg-indigo-100 active:scale-[0.98]"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.996.043-1.99.102-2.99.171A2.25 2.25 0 0 0 3 6.753V18a2.25 2.25 0 0 0 2.25 2.25h13.5A2.25 2.25 0 0 0 21 18V6.753a2.25 2.25 0 0 0-1.25-2.017 48.594 48.594 0 0 0-2.99-.171M12 4.236c.996.043 1.99.102 2.99.171A2.25 2.25 0 0 1 16.5 6.753V18a2.25 2.25 0 0 1-2.25 2.25H10.5A2.25 2.25 0 0 1 8.25 18V6.753a2.25 2.25 0 0 1 1.25-2.017 48.594 48.594 0 0 1 2.99-.171M12 4.236c-.996.043-1.99.102-2.99.171A2.25 2.25 0 0 0 7.5 6.753V18a2.25 2.25 0 0 0 2.25 2.25h4.5A2.25 2.25 0 0 0 16.5 18V6.753a2.25 2.25 0 0 0-1.25-2.017 48.594 48.594 0 0 0-2.99-.171" />
-          </svg>
-          Lihat Leaderboard
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => router.push(`/results?sessionId=${session.id}`)}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-indigo-200 bg-indigo-50 px-6 py-4 text-base font-semibold text-indigo-700 transition-all duration-200 hover:bg-indigo-100 active:scale-[0.98]"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.996.043-1.99.102-2.99.171A2.25 2.25 0 0 0 3 6.753V18a2.25 2.25 0 0 0 2.25 2.25h13.5A2.25 2.25 0 0 0 21 18V6.753a2.25 2.25 0 0 0-1.25-2.017 48.594 48.594 0 0 0-2.99-.171M12 4.236c.996.043 1.99.102 2.99.171A2.25 2.25 0 0 1 16.5 6.753V18a2.25 2.25 0 0 1-2.25 2.25H10.5A2.25 2.25 0 0 1 8.25 18V6.753a2.25 2.25 0 0 1 1.25-2.017 48.594 48.594 0 0 1 2.99-.171M12 4.236c-.996.043-1.99.102-2.99.171A2.25 2.25 0 0 0 7.5 6.753V18a2.25 2.25 0 0 0 2.25 2.25h4.5A2.25 2.25 0 0 0 16.5 18V6.753a2.25 2.25 0 0 0-1.25-2.017 48.594 48.594 0 0 0-2.99-.171" />
+            </svg>
+            Leaderboard
+          </button>
+          <button
+            onClick={() => router.push(`/sessions/${session.id}/report`)}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-indigo-200 transition-all duration-200 hover:bg-indigo-700 hover:shadow-xl active:scale-[0.98]"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+            </svg>
+            Lihat Laporan
+          </button>
+        </div>
       )}
     </div>
   );

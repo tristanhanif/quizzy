@@ -27,6 +27,13 @@ export declare class SessionsService {
         message: string;
         endTime: string;
     }>;
+    findByCreatorId(creatorId: string): Promise<{
+        data: {
+            quizTitle: string;
+            participantCount: any;
+            id: string;
+        }[];
+    }>;
     setEndTime(sessionId: string, endTime: Date): Promise<{
         message: string;
         endTime: string;

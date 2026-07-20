@@ -2,29 +2,57 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { UserRole } from '@/types';
+import { userService } from '@/services/user.service';
 import { authService } from '@/services/auth.service';
+import { useAuthStore } from '@/store/authStore';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  const setUser = useAuthStore((s) => s.setUser);
+  const fetchedProfileRef = useRef(false);
 
-  const goToProfile = async () => {
-    if (user?.displayId) {
-      router.push(`/profile/${user.displayId}`);
-      return;
-    }
-    try {
-      const res = await authService.getProfile();
-      const displayId = res.data.displayId;
-      if (displayId) {
-        router.push(`/profile/${displayId}`);
+  const isParticipant = user?.role === UserRole.PARTICIPANT;
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.displayId) return;
+    if (fetchedProfileRef.current) return;
+    fetchedProfileRef.current = true;
+    async function fetchProfile() {
+      try {
+        const res = await authService.getProfile();
+        if (res.data) {
+          setUser({
+            ...res.data,
+            name: res.data.fullName || res.data.name || user!.name,
+            picture: res.data.picture || user!.picture,
+          } as any);
+        }
+      } catch {
+        fetchedProfileRef.current = false;
       }
-    } catch {}
-  };
+    }
+    fetchProfile();
+  }, [user, setUser]);
+
+  useEffect(() => {
+    if (!user || !isParticipant) return;
+    async function loadPending() {
+      try {
+        const res = await userService.getPendingMutuals();
+        setPendingCount(res.data?.data?.length || 0);
+      } catch {
+        // ignore
+      }
+    }
+    loadPending();
+  }, [user, isParticipant]);
+
+  const profileHref = user?.displayId ? `/profile/${user.displayId}` : '#';
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -42,17 +70,44 @@ export default function Navbar() {
             <Link href="/dashboard" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
               Dashboard
             </Link>
+            {isParticipant && (
+              <>
+                <Link href="/dashboard/history" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+                  Riwayat
+                </Link>
+                <Link href="/dashboard/friends" className="relative px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+                  Teman
+                  {pendingCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
+                      {pendingCount > 9 ? '9+' : pendingCount}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
             {user?.role === UserRole.CREATOR && (
               <Link href="/quizzes" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
                 Quizzes
               </Link>
             )}
+            {user?.role === UserRole.CREATOR && (
+              <Link href="/dashboard/sessions" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+                Sesi
+              </Link>
+            )}
+            {user?.role === UserRole.ADMIN && (
+              <Link href="/dashboard/admin" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+                Admin Panel
+              </Link>
+            )}
             <Link href="/results" className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
               Results
             </Link>
-            <button onClick={goToProfile} className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-              Profile
-            </button>
+            {user?.displayId && (
+              <Link href={profileHref} className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+                Profile
+              </Link>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -63,12 +118,18 @@ export default function Navbar() {
                     <p className="text-sm font-medium text-slate-900">{user.name}</p>
                     <p className="text-xs text-slate-500">{user.displayId || 'Memuat...'}</p>
                   </div>
-                  <button
-                    onClick={goToProfile}
-                    className="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 font-semibold text-sm hover:bg-indigo-200 transition-colors cursor-pointer"
-                  >
-                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </button>
+                  {user.displayId ? (
+                    <Link
+                      href={profileHref}
+                      className="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 font-semibold text-sm hover:bg-indigo-200 transition-colors"
+                    >
+                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </Link>
+                  ) : (
+                    <div className="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 font-semibold text-sm">
+                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={logout}
@@ -100,17 +161,44 @@ export default function Navbar() {
             <Link href="/dashboard" className="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg" onClick={() => setMobileOpen(false)}>
               Dashboard
             </Link>
+            {isParticipant && (
+              <>
+                <Link href="/dashboard/history" className="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg" onClick={() => setMobileOpen(false)}>
+                  Riwayat
+                </Link>
+                <Link href="/dashboard/friends" className="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg" onClick={() => setMobileOpen(false)}>
+                  <span>Teman</span>
+                  {pendingCount > 0 && (
+                    <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                      {pendingCount > 9 ? '9+' : pendingCount}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
             {user?.role === UserRole.CREATOR && (
               <Link href="/quizzes" className="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg" onClick={() => setMobileOpen(false)}>
                 Quizzes
               </Link>
             )}
+            {user?.role === UserRole.CREATOR && (
+              <Link href="/dashboard/sessions" className="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg" onClick={() => setMobileOpen(false)}>
+                Sesi
+              </Link>
+            )}
+            {user?.role === UserRole.ADMIN && (
+              <Link href="/dashboard/admin" className="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg" onClick={() => setMobileOpen(false)}>
+                Admin Panel
+              </Link>
+            )}
             <Link href="/results" className="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg" onClick={() => setMobileOpen(false)}>
               Results
             </Link>
-            <button onClick={() => { goToProfile(); setMobileOpen(false); }} className="block w-full text-left px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg cursor-pointer">
-              Profile
-            </button>
+            {user?.displayId && (
+              <Link href={profileHref} className="block px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg" onClick={() => setMobileOpen(false)}>
+                Profile
+              </Link>
+            )}
             <button onClick={() => { logout(); setMobileOpen(false); }} className="block w-full text-left px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg">
               Logout
             </button>

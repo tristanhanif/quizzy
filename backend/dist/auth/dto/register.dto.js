@@ -13,6 +13,7 @@ exports.SetRoleDto = exports.LoginDto = exports.RegisterDto = exports.UserRole =
 const class_validator_1 = require("class-validator");
 var UserRole;
 (function (UserRole) {
+    UserRole["ADMIN"] = "ADMIN";
     UserRole["CREATOR"] = "CREATOR";
     UserRole["PARTICIPANT"] = "PARTICIPANT";
 })(UserRole || (exports.UserRole = UserRole = {}));

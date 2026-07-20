@@ -12,6 +12,13 @@ export declare class SessionsController {
         sessionId: string;
         websocketUrl: string;
     }>;
+    findMine(req: any): Promise<{
+        data: {
+            quizTitle: string;
+            participantCount: any;
+            id: string;
+        }[];
+    }>;
     findOne(id: string): Promise<any>;
     findByRoomCode(roomCode: string): Promise<any>;
     getParticipants(id: string): Promise<{

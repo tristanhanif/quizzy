@@ -30,6 +30,11 @@ export class SessionsController {
     return this.sessionsService.join(joinSessionDto, req.user.userId);
   }
 
+  @Get('mine')
+  async findMine(@Request() req) {
+    return this.sessionsService.findByCreatorId(req.user.userId);
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.sessionsService.findOne(id);

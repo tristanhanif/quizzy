@@ -38,6 +38,16 @@ export function useCreateQuiz() {
   });
 }
 
+export function useUpdateQuiz() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: CreateQuizPayload }) => quizService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+    },
+  });
+}
+
 export function useDeleteQuiz() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -9,6 +9,7 @@ import { ResultsModule } from './results/results.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { CategoriesModule } from './categories/categories.module';
 import { UsersModule } from './users/users.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UsersModule } from './users/users.module';
     GatewayModule,
     CategoriesModule,
     UsersModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

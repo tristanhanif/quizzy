@@ -81,13 +81,17 @@ let ResultsService = class ResultsService {
         const resultsSnapshot = await this.firebaseService.firestore
             .collection('quiz_results')
             .where('sessionId', '==', sessionId)
-            .orderBy('score', 'desc')
-            .limit(limit)
             .get();
-        const leaderboard = resultsSnapshot.docs.map((doc, index) => ({
+        const entries = resultsSnapshot.docs.map((doc) => ({
             participantId: doc.data().participantId,
             participantName: doc.data().participantName,
             score: doc.data().score,
+        }));
+        entries.sort((a, b) => b.score - a.score);
+        const leaderboard = entries
+            .slice(0, limit)
+            .map((entry, index) => ({
+            ...entry,
             rank: index + 1,
         }));
         return {
@@ -98,27 +102,29 @@ let ResultsService = class ResultsService {
         const resultsSnapshot = await this.firebaseService.firestore
             .collection('quiz_results')
             .where('sessionId', '==', sessionId)
-            .orderBy('score', 'desc')
             .get();
-        return {
-            data: resultsSnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            })),
-        };
+        const results = resultsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+        results.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+        return { data: results };
     }
     async getUserResults(userId) {
         const resultsSnapshot = await this.firebaseService.firestore
             .collection('quiz_results')
             .where('participantId', '==', userId)
-            .orderBy('submittedAt', 'desc')
             .get();
-        return {
-            data: resultsSnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            })),
-        };
+        const results = resultsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+        results.sort((a, b) => {
+            const dateA = a.submittedAt?.toDate?.() ?? new Date(a.submittedAt ?? 0);
+            const dateB = b.submittedAt?.toDate?.() ?? new Date(b.submittedAt ?? 0);
+            return dateB.getTime() - dateA.getTime();
+        });
+        return { data: results };
     }
     async getResultById(resultId) {
         const resultDoc = await this.firebaseService.firestore

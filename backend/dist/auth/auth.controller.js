@@ -39,6 +39,14 @@ let AuthController = class AuthController {
         res.cookie('quizzy_access_token', result.accessToken, COOKIE_OPTIONS);
         return result;
     }
+    async checkAdminEmail(dto) {
+        return this.authService.checkAdminEmail(dto.email);
+    }
+    async adminLogin(dto, res) {
+        const result = await this.authService.adminLogin(dto);
+        res.cookie('quizzy_access_token', result.accessToken, COOKIE_OPTIONS);
+        return result;
+    }
     async getProfile(req) {
         return this.authService.getProfile(req.user.userId);
     }
@@ -76,6 +84,25 @@ __decorate([
     __metadata("design:paramtypes", [register_dto_1.LoginDto, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('admin/check-email'),
+    (0, skip_role_check_decorator_1.SkipRoleCheck)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "checkAdminEmail", null);
+__decorate([
+    (0, common_1.Post)('admin/login'),
+    (0, skip_role_check_decorator_1.SkipRoleCheck)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "adminLogin", null);
 __decorate([
     (0, common_1.Get)('profile'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

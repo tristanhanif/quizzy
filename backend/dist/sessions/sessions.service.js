@@ -192,6 +192,34 @@ let SessionsService = class SessionsService {
             endTime: endTime.toISOString(),
         };
     }
+    async findByCreatorId(creatorId) {
+        const snapshot = await this.firebaseService.firestore
+            .collection('quiz_sessions')
+            .where('creatorId', '==', creatorId)
+            .orderBy('createdAt', 'desc')
+            .get();
+        const sessions = await Promise.all(snapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            let quizTitle = '';
+            try {
+                const quizDoc = await this.firebaseService.firestore
+                    .collection('quizzes')
+                    .doc(data.quizId)
+                    .get();
+                if (quizDoc.exists) {
+                    quizTitle = quizDoc.data()?.title || '';
+                }
+            }
+            catch { }
+            return {
+                id: doc.id,
+                ...data,
+                quizTitle,
+                participantCount: data.participants?.length || 0,
+            };
+        }));
+        return { data: sessions };
+    }
     async setEndTime(sessionId, endTime) {
         await this.firebaseService.firestore
             .collection('quiz_sessions')

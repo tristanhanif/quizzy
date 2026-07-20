@@ -26,4 +26,9 @@ export const sessionService = {
     const { data } = await api.get(`/sessions/${sessionId}/participants`);
     return data;
   },
+
+  async getMine(): Promise<ApiResponse<{ data: any[] }>> {
+    const { data } = await api.get('/sessions/mine');
+    return data;
+  },
 };

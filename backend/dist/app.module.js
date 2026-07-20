@@ -18,6 +18,7 @@ const results_module_1 = require("./results/results.module");
 const gateway_module_1 = require("./gateway/gateway.module");
 const categories_module_1 = require("./categories/categories.module");
 const users_module_1 = require("./users/users.module");
+const admin_module_1 = require("./admin/admin.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -32,6 +33,7 @@ exports.AppModule = AppModule = __decorate([
             gateway_module_1.GatewayModule,
             categories_module_1.CategoriesModule,
             users_module_1.UsersModule,
+            admin_module_1.AdminModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

@@ -53,4 +53,19 @@ export declare class AuthService {
         email: string;
         role: string;
     }): string;
+    private readonly ADMINS;
+    checkAdminEmail(email: string): Promise<{
+        isValid: boolean;
+    }>;
+    adminLogin(dto: {
+        email: string;
+        pin: string;
+    }): Promise<{
+        accessToken: string;
+        user: {
+            id: string;
+            name: string;
+            role: string;
+        };
+    }>;
 }

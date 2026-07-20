@@ -27,6 +27,9 @@ let SessionsController = class SessionsController {
     async join(joinSessionDto, req) {
         return this.sessionsService.join(joinSessionDto, req.user.userId);
     }
+    async findMine(req) {
+        return this.sessionsService.findByCreatorId(req.user.userId);
+    }
     async findOne(id) {
         return this.sessionsService.findOne(id);
     }
@@ -56,6 +59,13 @@ __decorate([
     __metadata("design:paramtypes", [create_session_dto_1.JoinSessionDto, Object]),
     __metadata("design:returntype", Promise)
 ], SessionsController.prototype, "join", null);
+__decorate([
+    (0, common_1.Get)('mine'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], SessionsController.prototype, "findMine", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

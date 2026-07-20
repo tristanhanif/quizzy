@@ -22,6 +22,22 @@ export declare class AuthController {
             displayId: any;
         };
     }>;
+    checkAdminEmail(dto: {
+        email: string;
+    }): Promise<{
+        isValid: boolean;
+    }>;
+    adminLogin(dto: {
+        email: string;
+        pin: string;
+    }, res: Response): Promise<{
+        accessToken: string;
+        user: {
+            id: string;
+            name: string;
+            role: string;
+        };
+    }>;
     getProfile(req: any): Promise<{
         id: string;
         fullName: any;

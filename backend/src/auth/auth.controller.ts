@@ -45,6 +45,22 @@ export class AuthController {
     return result;
   }
 
+  @Post('admin/check-email')
+  @SkipRoleCheck()
+  @HttpCode(HttpStatus.OK)
+  async checkAdminEmail(@Body() dto: { email: string }) {
+    return this.authService.checkAdminEmail(dto.email);
+  }
+
+  @Post('admin/login')
+  @SkipRoleCheck()
+  @HttpCode(HttpStatus.OK)
+  async adminLogin(@Body() dto: { email: string; pin: string }, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.adminLogin(dto);
+    res.cookie('quizzy_access_token', result.accessToken, COOKIE_OPTIONS);
+    return result;
+  }
+
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   async getProfile(@Request() req) {

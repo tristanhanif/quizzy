@@ -161,13 +161,7 @@ export class AuthService {
       };
     }
 
-    const userRecord = await this.firebaseService.auth.createUser({
-      email,
-      displayName: name,
-      photoURL: picture,
-    });
-
-    await usersRef.doc(userRecord.uid).set({
+    await usersRef.doc(firebaseUid).set({
       fullName: name,
       email,
       role: null,
@@ -180,14 +174,14 @@ export class AuthService {
     });
 
     const token = this.generateToken({
-      sub: userRecord.uid,
+      sub: firebaseUid,
       email,
       role: null,
     });
 
     return {
       accessToken: token,
-      user: { id: userRecord.uid, name, role: null, displayId: null, picture },
+      user: { id: firebaseUid, name, role: null, displayId: null, picture },
       needsRoleSelection: true,
     };
   }
@@ -223,5 +217,87 @@ export class AuthService {
 
   generateToken(payload: { sub: string; email: string; role: string }) {
     return this.jwtService.sign(payload);
+  }
+
+  private readonly ADMINS = [
+    { email: 'tristanhanifganteng@gmail.com', pin: '190309', name: 'Tristan Hanif' },
+    { email: 'affanabdullahganteng@gmail.com', pin: '101208', name: 'Affan Abdullah' },
+  ];
+
+  async checkAdminEmail(email: string) {
+    const admin = this.ADMINS.find((a) => a.email === email);
+    return { isValid: !!admin };
+  }
+
+  async adminLogin(dto: { email: string; pin: string }) {
+    const admin = this.ADMINS.find((a) => a.email === dto.email);
+    
+    if (!admin) {
+      throw new UnauthorizedException('Email admin tidak terdaftar');
+    }
+
+    if (admin.pin !== dto.pin) {
+      throw new UnauthorizedException('PIN admin salah');
+    }
+
+    const usersRef = this.firebaseService.firestore.collection('users');
+    const existingUser = await usersRef.where('email', '==', dto.email).get();
+
+    let userId: string;
+
+    if (existingUser.empty) {
+      let firebaseUid: string;
+
+      // Try to create Firebase Auth user; if email already exists, get the existing one
+      try {
+        const userRecord = await this.firebaseService.auth.createUser({
+          email: dto.email,
+          password: 'admin-google-auth',
+          displayName: admin.name,
+        });
+        firebaseUid = userRecord.uid;
+      } catch (authErr: any) {
+        if (authErr.code === 'auth/email-already-exists' || authErr.message?.includes('email-already-exists')) {
+          // Email exists in Firebase Auth but not in Firestore — find it
+          const userRecord = await this.firebaseService.auth.getUserByEmail(dto.email);
+          firebaseUid = userRecord.uid;
+        } else {
+          throw authErr;
+        }
+      }
+
+      const displayId = generateDisplayId('ADMIN');
+
+      await usersRef.doc(firebaseUid).set({
+        fullName: admin.name,
+        email: dto.email,
+        role: 'ADMIN',
+        displayId,
+        provider: 'admin',
+        isLinked: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      userId = firebaseUid;
+    } else {
+      const userDoc = existingUser.docs[0];
+      userId = userDoc.id;
+      
+      if (userDoc.data().role !== 'ADMIN') {
+        await userDoc.ref.update({ role: 'ADMIN', updatedAt: new Date() });
+      }
+    }
+
+    const token = this.generateToken({
+      sub: userId,
+      email: dto.email,
+      role: 'ADMIN',
+    });
+
+    return {
+      accessToken: token,
+      user: { id: userId, name: admin.name, role: 'ADMIN' },
+    };
   }
 }

@@ -222,6 +222,38 @@ export class SessionsService {
     };
   }
 
+  async findByCreatorId(creatorId: string) {
+    const snapshot = await this.firebaseService.firestore
+      .collection('quiz_sessions')
+      .where('creatorId', '==', creatorId)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const sessions = await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        const data = doc.data();
+        let quizTitle = '';
+        try {
+          const quizDoc = await this.firebaseService.firestore
+            .collection('quizzes')
+            .doc(data.quizId)
+            .get();
+          if (quizDoc.exists) {
+            quizTitle = quizDoc.data()?.title || '';
+          }
+        } catch {}
+        return {
+          id: doc.id,
+          ...data,
+          quizTitle,
+          participantCount: data.participants?.length || 0,
+        };
+      }),
+    );
+
+    return { data: sessions };
+  }
+
   async setEndTime(sessionId: string, endTime: Date) {
     await this.firebaseService.firestore
       .collection('quiz_sessions')

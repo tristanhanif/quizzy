@@ -22,6 +22,7 @@ export default function CreateQuizPage() {
   const createQuiz = useCreateQuiz();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
   const [questions, setQuestions] = useState<QuestionInput[]>([
     {
       text: '',
@@ -47,9 +48,19 @@ export default function CreateQuizPage() {
     ]);
   };
 
-  const updateQuestion = (index: number, field: keyof QuestionInput, value: any) => {
+  const updateQuestion = (index: number, field: keyof QuestionInput, value: string | number) => {
     const updated = [...questions];
-    (updated[index] as any)[field] = value;
+    const q = { ...updated[index] };
+    (q as Record<string, unknown>)[field] = value;
+    if (field === 'type') {
+      if (value === QuestionType.TRUE_FALSE) {
+        q.choices = ['Benar', 'Salah'];
+      } else {
+        q.choices = ['', '', '', ''];
+      }
+      q.correctAnswer = '';
+    }
+    updated[index] = q;
     setQuestions(updated);
   };
 
@@ -71,6 +82,7 @@ export default function CreateQuizPage() {
       await createQuiz.mutateAsync({
         title,
         description,
+        isPublic,
         questions: questions.map((q) => ({
           text: q.text,
           type: q.type,
@@ -137,6 +149,28 @@ export default function CreateQuizPage() {
                 rows={3}
                 required
               />
+            </div>
+            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Visibilitas Quiz</p>
+                  <p className="text-xs text-gray-500">{isPublic ? 'Quiz ini bisa ditemukan oleh semua orang' : 'Quiz ini hanya bisa diakses via kode ruangan'}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPublic(!isPublic)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isPublic ? 'bg-indigo-600' : 'bg-gray-300'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isPublic ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
             </div>
           </div>
         </div>
@@ -209,21 +243,43 @@ export default function CreateQuizPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Pilihan Jawaban</label>
-                <div className="space-y-2.5">
-                  {q.choices.map((choice, cIndex) => (
-                    <div key={cIndex} className="flex items-center gap-3">
-                      <span className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold ${choiceColors[cIndex]}`}>
-                        {String.fromCharCode(65 + cIndex)}
-                      </span>
-                      <input
-                        placeholder={`Pilihan ${cIndex + 1}`}
-                        value={choice}
-                        onChange={(e) => updateChoice(qIndex, cIndex, e.target.value)}
-                        className="flex-1 px-4 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition-all duration-200"
-                      />
-                    </div>
-                  ))}
-                </div>
+                {q.type === QuestionType.TRUE_FALSE ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {q.choices.map((choice, cIndex) => (
+                      <div
+                        key={cIndex}
+                        className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all ${
+                          q.correctAnswer === choice
+                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                            : 'border-gray-200 bg-gray-50 text-gray-600'
+                        }`}
+                      >
+                        <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md text-xs font-bold ${
+                          q.correctAnswer === choice ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {cIndex === 0 ? 'T' : 'F'}
+                        </span>
+                        {choice}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {q.choices.map((choice, cIndex) => (
+                      <div key={cIndex} className="flex items-center gap-3">
+                        <span className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold ${choiceColors[cIndex]}`}>
+                          {String.fromCharCode(65 + cIndex)}
+                        </span>
+                        <input
+                          placeholder={`Pilihan ${cIndex + 1}`}
+                          value={choice}
+                          onChange={(e) => updateChoice(qIndex, cIndex, e.target.value)}
+                          className="flex-1 px-4 py-2 rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition-all duration-200"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="w-full">

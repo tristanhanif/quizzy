@@ -19,6 +19,10 @@ let AuthService = class AuthService {
     constructor(firebaseService, jwtService) {
         this.firebaseService = firebaseService;
         this.jwtService = jwtService;
+        this.ADMINS = [
+            { email: 'tristanhanifganteng@gmail.com', pin: '190309', name: 'Tristan Hanif' },
+            { email: 'affanabdullahganteng@gmail.com', pin: '101208', name: 'Affan Abdullah' },
+        ];
     }
     async register(registerDto) {
         const { fullName, email, password, role } = registerDto;
@@ -135,12 +139,7 @@ let AuthService = class AuthService {
                 needsRoleSelection,
             };
         }
-        const userRecord = await this.firebaseService.auth.createUser({
-            email,
-            displayName: name,
-            photoURL: picture,
-        });
-        await usersRef.doc(userRecord.uid).set({
+        await usersRef.doc(firebaseUid).set({
             fullName: name,
             email,
             role: null,
@@ -152,13 +151,13 @@ let AuthService = class AuthService {
             updatedAt: new Date(),
         });
         const token = this.generateToken({
-            sub: userRecord.uid,
+            sub: firebaseUid,
             email,
             role: null,
         });
         return {
             accessToken: token,
-            user: { id: userRecord.uid, name, role: null, displayId: null, picture },
+            user: { id: firebaseUid, name, role: null, displayId: null, picture },
             needsRoleSelection: true,
         };
     }
@@ -185,6 +184,70 @@ let AuthService = class AuthService {
     }
     generateToken(payload) {
         return this.jwtService.sign(payload);
+    }
+    async checkAdminEmail(email) {
+        const admin = this.ADMINS.find((a) => a.email === email);
+        return { isValid: !!admin };
+    }
+    async adminLogin(dto) {
+        const admin = this.ADMINS.find((a) => a.email === dto.email);
+        if (!admin) {
+            throw new common_1.UnauthorizedException('Email admin tidak terdaftar');
+        }
+        if (admin.pin !== dto.pin) {
+            throw new common_1.UnauthorizedException('PIN admin salah');
+        }
+        const usersRef = this.firebaseService.firestore.collection('users');
+        const existingUser = await usersRef.where('email', '==', dto.email).get();
+        let userId;
+        if (existingUser.empty) {
+            let firebaseUid;
+            try {
+                const userRecord = await this.firebaseService.auth.createUser({
+                    email: dto.email,
+                    password: 'admin-google-auth',
+                    displayName: admin.name,
+                });
+                firebaseUid = userRecord.uid;
+            }
+            catch (authErr) {
+                if (authErr.code === 'auth/email-already-exists' || authErr.message?.includes('email-already-exists')) {
+                    const userRecord = await this.firebaseService.auth.getUserByEmail(dto.email);
+                    firebaseUid = userRecord.uid;
+                }
+                else {
+                    throw authErr;
+                }
+            }
+            const displayId = (0, display_id_1.generateDisplayId)('ADMIN');
+            await usersRef.doc(firebaseUid).set({
+                fullName: admin.name,
+                email: dto.email,
+                role: 'ADMIN',
+                displayId,
+                provider: 'admin',
+                isLinked: false,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+            userId = firebaseUid;
+        }
+        else {
+            const userDoc = existingUser.docs[0];
+            userId = userDoc.id;
+            if (userDoc.data().role !== 'ADMIN') {
+                await userDoc.ref.update({ role: 'ADMIN', updatedAt: new Date() });
+            }
+        }
+        const token = this.generateToken({
+            sub: userId,
+            email: dto.email,
+            role: 'ADMIN',
+        });
+        return {
+            accessToken: token,
+            user: { id: userId, name: admin.name, role: 'ADMIN' },
+        };
     }
 };
 exports.AuthService = AuthService;
