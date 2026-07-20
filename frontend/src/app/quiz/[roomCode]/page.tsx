@@ -3,6 +3,7 @@
 import { use, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionByRoomCode, useSubmitResult } from '@/hooks/useQuiz';
+import { sessionService } from '@/services/session.service';
 import { useAuthStore } from '@/store/authStore';
 import { useSocket } from '@/hooks/useSocket';
 import { quizService } from '@/services/quiz.service';
@@ -59,7 +60,7 @@ function CountdownTimer({
   return (
     <span
       className={`text-lg font-bold ${
-        timeLeft <= 5 ? 'text-red-400 animate-pulse' : timeLeft <= 10 ? 'text-yellow-400' : 'text-white'
+        timeLeft <= 5 ? 'text-slate-900 animate-pulse' : timeLeft <= 10 ? 'text-indigo-600' : 'text-slate-900'
       }`}
     >
       {timeLeft}
@@ -103,14 +104,24 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
 
   const { isConnected, emit, on, off } = useSocket({ namespace });
 
-  // 1. Join Room via WebSocket
+  // 1. Join Room via REST + WebSocket
   useEffect(() => {
     if (!isConnected || !user || !sessionData) return;
 
     if (!isCreator || !isOwner) {
-      emit('join_room', { roomCode, userId: user.id }, (response: any) => {
-        if (response?.error) console.error('Error joining room:', response.error);
-      });
+      (async () => {
+        try {
+          await sessionService.join(roomCode);
+        } catch (err: any) {
+          if (err?.response?.data?.message !== 'You are already in this session') {
+            console.error('Failed to join session:', err);
+            return;
+          }
+        }
+        emit('join_room', { roomCode, userId: user.id }, (response: any) => {
+          if (response?.error) console.error('Error joining room:', response.error);
+        });
+      })();
     }
   }, [isConnected, user, sessionData, isCreator, isOwner, roomCode, emit]);
 
@@ -284,14 +295,8 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getChoiceColor = (index: number) => {
-    const colors = [
-      'bg-rose-500 hover:bg-rose-600',
-      'bg-blue-500 hover:bg-blue-600',
-      'bg-yellow-500 hover:bg-yellow-600',
-      'bg-green-500 hover:bg-green-600',
-    ];
-    return colors[index % colors.length];
+  const getChoiceColor = () => {
+    return 'bg-white border-2 border-slate-200 hover:border-indigo-300 text-slate-900';
   };
 
   const getChoiceLetter = (index: number) => ['A', 'B', 'C', 'D'][index];
@@ -301,10 +306,10 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
   // ------------------------------------------
   if (sessionLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading quiz arena...</p>
+          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-500">Loading quiz arena...</p>
         </div>
       </div>
     );
@@ -315,10 +320,10 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
   // ------------------------------------------
   if (!sessionData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-white text-lg font-semibold mb-2">Session Not Found</p>
-          <p className="text-gray-400 mb-4">Kode ruangan ini tidak valid atau sesi telah berakhir.</p>
+          <p className="text-slate-900 text-lg font-semibold mb-2">Session Not Found</p>
+          <p className="text-slate-500 mb-4">Kode ruangan ini tidak valid atau sesi telah berakhir.</p>
           <button
             onClick={() => router.push('/dashboard')}
             className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
@@ -335,30 +340,30 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
   // ------------------------------------------
   if (quizFinished) {
     return (
-      <div className="min-h-screen bg-gray-900 py-8 px-4">
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-lg mx-auto space-y-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Quiz Selesai!</h1>
-            <p className="text-gray-400">Papan Peringkat Akhir</p>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Quiz Selesai!</h1>
+            <p className="text-slate-500">Papan Peringkat Akhir</p>
           </div>
 
-          <div className="rounded-2xl bg-gray-800 border border-gray-700 p-6">
+          <div className="rounded-2xl bg-white border border-slate-200 p-6">
             <div className="space-y-4">
               {leaderboard.map((entry, index) => (
                 <div
                   key={entry.participantId}
                   className={`flex items-center gap-4 p-4 rounded-xl ${
                     entry.participantId === user?.id
-                      ? 'bg-indigo-600/20 border border-indigo-500/50'
-                      : 'bg-gray-700/50'
+                      ? 'bg-indigo-50 border border-indigo-200'
+                      : 'bg-slate-50'
                   }`}
                 >
-                  <span className="text-2xl font-bold text-white w-8">
+                  <span className="text-2xl font-bold text-slate-900 w-8">
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
                   </span>
                   <div className="flex-1">
-                    <p className="font-semibold text-white">{entry.participantName}</p>
-                    <p className="text-sm text-gray-400">{entry.score} poin</p>
+                    <p className="font-semibold text-slate-900">{entry.participantName}</p>
+                    <p className="text-sm text-slate-500">{entry.score} poin</p>
                   </div>
                 </div>
               ))}
@@ -366,9 +371,9 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
           </div>
 
           {answers.length > 0 && (
-            <div className="rounded-2xl bg-gray-800 border border-gray-700 p-6 text-center">
-              <p className="text-sm text-gray-400 mb-2">Skor Total Anda</p>
-              <p className="text-4xl font-bold text-indigo-400">
+            <div className="rounded-2xl bg-white border border-slate-200 p-6 text-center">
+              <p className="text-sm text-slate-500 mb-2">Skor Total Anda</p>
+              <p className="text-4xl font-bold text-indigo-600">
                 {answers.reduce((sum, a) => sum + a.score, 0)}
               </p>
               <button
@@ -383,7 +388,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
 
           <button
             onClick={() => router.push('/dashboard')}
-            className="w-full py-3 bg-gray-700 text-white rounded-xl font-medium hover:bg-gray-600 transition-colors"
+            className="w-full py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium hover:bg-slate-50 transition-colors"
           >
             Kembali ke Dashboard
           </button>
@@ -397,55 +402,55 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
   // ------------------------------------------
   if (!quizStarted) {
     return (
-      <div className="min-h-screen bg-gray-900 py-8 px-4">
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-lg mx-auto space-y-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Quiz Arena</h1>
-            <p className="text-gray-400">Status: {sessionData.status}</p>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Quiz Arena</h1>
+            <p className="text-slate-500">Status: {sessionData.status}</p>
           </div>
 
-          <div className="rounded-2xl bg-gray-800 border border-gray-700 p-6 text-center">
-            <p className="text-sm text-gray-400 mb-2">Kode Ruangan</p>
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 text-center">
+            <p className="text-sm text-slate-500 mb-2">Kode Ruangan</p>
             <p
-              className="text-5xl font-mono font-bold text-indigo-400 cursor-pointer hover:text-indigo-300 transition-colors tracking-wider"
+              className="text-5xl font-mono font-bold text-indigo-600 cursor-pointer hover:text-indigo-700 transition-colors tracking-wider"
               onClick={copyRoomCode}
             >
               {roomCode}
             </p>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-slate-400 mt-2">
               {copied ? 'Tersalin ke clipboard!' : 'Klik untuk menyalin kode'}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-gray-800 border border-gray-700 p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1">Status Koneksi Socket</p>
-            <p className={`text-sm font-medium ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
+          <div className="rounded-2xl bg-white border border-slate-200 p-4 text-center">
+            <p className="text-xs text-slate-500 mb-1">Status Koneksi Socket</p>
+            <p className={`text-sm font-medium ${isConnected ? 'text-indigo-600' : 'text-slate-400'}`}>
               {isConnected ? '● Terhubung' : '○ Terputus'}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-gray-800 border border-gray-700 p-5">
+          <div className="rounded-2xl bg-white border border-slate-200 p-5">
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-                <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50">
+                <svg className="h-4 w-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                 </svg>
               </div>
-              <h3 className="text-sm font-semibold text-white">Peserta Bergabung</h3>
-              <span className="ml-auto inline-flex items-center rounded-full bg-indigo-600 px-2.5 py-0.5 text-xs font-medium text-white">
+              <h3 className="text-sm font-semibold text-slate-900">Peserta Bergabung</h3>
+              <span className="ml-auto inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600">
                 {participantCount}
               </span>
             </div>
             {participants.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">Belum ada peserta yang bergabung</p>
+              <p className="text-sm text-slate-400 text-center py-4">Belum ada peserta yang bergabung</p>
             ) : (
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                 {participants.map((p) => (
-                  <div key={p.id} className="flex items-center gap-3 rounded-xl bg-gray-700/50 px-3 py-2.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white text-xs font-bold">
+                  <div key={p.id} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold">
                       {p.name?.charAt(0)?.toUpperCase() || '?'}
                     </div>
-                    <span className="text-sm font-medium text-gray-200">{p.name}</span>
+                    <span className="text-sm font-medium text-slate-700">{p.name}</span>
                   </div>
                 ))}
               </div>
@@ -454,7 +459,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
 
           {isCreator && isOwner ? (
             <button
-              className="w-full py-4 bg-indigo-600 text-white text-lg font-bold rounded-2xl hover:bg-indigo-700 transition-all disabled:opacity-50 shadow-lg shadow-indigo-600/30"
+              className="w-full py-4 bg-indigo-600 text-white text-lg font-bold rounded-2xl hover:bg-indigo-700 transition-all disabled:opacity-50"
               onClick={handleStartQuiz}
               disabled={!isConnected}
             >
@@ -462,7 +467,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
             </button>
           ) : (
             <div className="text-center py-4">
-              <p className="text-gray-400 text-sm animate-pulse">Menunggu host memulai quiz...</p>
+              <p className="text-slate-400 text-sm animate-pulse">Menunggu host memulai quiz...</p>
             </div>
           )}
         </div>
@@ -479,12 +484,12 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
     : 1;
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-4">
         {/* Header Bar */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-medium text-gray-400 font-mono">{roomCode}</span>
-          <span className="text-base md:text-lg font-bold text-white bg-gray-800 px-4 py-2 rounded-full border border-gray-700">
+          <span className="text-sm font-medium text-slate-400 font-mono">{roomCode}</span>
+          <span className="text-base md:text-lg font-bold text-slate-900 bg-white px-4 py-2 rounded-full border border-slate-200">
             Soal {questionIndex + 1} / {totalQuestions}
           </span>
           {currentQuestion && (
@@ -497,7 +502,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                   stroke="currentColor"
                   strokeWidth="3"
                   fill="none"
-                  className="text-gray-700"
+                  className="text-slate-200"
                 />
                 <circle
                   cx="28"
@@ -508,7 +513,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                   fill="none"
                   strokeDasharray={`${totalCircleLength}`}
                   strokeDashoffset={`${totalCircleLength * (1 - timeProgress)}`}
-                  className="text-indigo-500 transition-all duration-1000 ease-linear"
+                  className="text-indigo-600 transition-all duration-1000 ease-linear"
                   strokeLinecap="round"
                 />
               </svg>
@@ -526,8 +531,8 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
 
         {/* Teks Pertanyaan */}
         {currentQuestion && (
-          <div className="rounded-2xl bg-gray-800 border border-gray-700 p-6 mb-4 shadow-xl">
-            <h2 className="text-xl md:text-2xl font-bold text-white text-center leading-relaxed">
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 mb-4 shadow-sm">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900 text-center leading-relaxed">
               {currentQuestion.text}
             </h2>
           </div>
@@ -548,21 +553,21 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                   onClick={() => handleAnswer(choice)}
                   disabled={showResult}
                   className={`
-                    relative flex items-center justify-center gap-3 p-4 md:p-6 rounded-2xl font-bold text-white text-lg md:text-xl
+                    relative flex items-center justify-center gap-3 p-4 md:p-6 rounded-2xl font-bold text-lg md:text-xl
                     transition-all duration-200 min-h-[80px] md:min-h-[100px]
                     ${
                       showCorrectHighlight
-                        ? 'bg-green-500 scale-[1.02] shadow-lg shadow-green-500/30'
+                        ? 'bg-indigo-600 text-white scale-[1.02] shadow-lg shadow-indigo-600/20'
                         : showWrongHighlight
-                          ? 'bg-gray-600 opacity-60'
+                          ? 'bg-slate-100 text-slate-400 opacity-60'
                           : isSelected
-                            ? `${getChoiceColor(index)} scale-[1.02] shadow-lg`
-                            : `${getChoiceColor(index)} active:scale-[0.98]`
+                            ? `${getChoiceColor()} scale-[1.02] shadow-lg border-indigo-400`
+                            : `${getChoiceColor()} active:scale-[0.98]`
                     }
                     disabled:cursor-default
                   `}
                 >
-                  <span className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/20 flex items-center justify-center text-lg md:text-xl font-black flex-shrink-0">
+                  <span className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-slate-100 flex items-center justify-center text-lg md:text-xl font-black flex-shrink-0">
                     {getChoiceLetter(index)}
                   </span>
                   <span className="text-left flex-1 text-base md:text-lg">{choice}</span>
@@ -572,7 +577,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                     </svg>
                   )}
                   {showWrongHighlight && (
-                    <svg className="w-6 h-6 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-6 h-6 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   )}
@@ -585,8 +590,8 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
         {/* Footer Bar */}
         <div className="flex items-center justify-between mt-4 pb-4">
           <div className="text-left">
-            <p className="text-xs text-gray-500">Skor Anda</p>
-            <p className="text-xl font-bold text-white">
+            <p className="text-xs text-slate-400">Skor Anda</p>
+            <p className="text-xl font-bold text-slate-900">
               {answers.reduce((sum, a) => sum + a.score, 0)}
             </p>
           </div>
@@ -599,12 +604,12 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                   key={i}
                   className={`w-3 h-3 rounded-full transition-all ${
                     i === questionIndex
-                      ? 'bg-indigo-500 scale-125 ring-2 ring-indigo-400/50'
+                      ? 'bg-indigo-600 scale-125 ring-2 ring-indigo-200'
                       : i < questionIndex
                         ? answerForStep && answerForStep.score > 0
-                          ? 'bg-green-500'
-                          : 'bg-red-500'
-                        : 'bg-gray-700'
+                          ? 'bg-indigo-600'
+                          : 'bg-slate-300'
+                        : 'bg-slate-200'
                   }`}
                 />
               );
@@ -616,14 +621,14 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
               questionIndex < totalQuestions - 1 ? (
                 <button
                   onClick={handleNextQuestion}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/30"
+                  className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
                 >
                   Lanjut →
                 </button>
               ) : (
                 <button
                   onClick={handleEndQuiz}
-                  className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30"
+                  className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
                 >
                   Selesai
                 </button>

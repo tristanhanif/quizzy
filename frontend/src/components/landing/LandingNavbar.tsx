@@ -12,7 +12,7 @@ export default function LandingNavbar() {
 
   const navLinks = [
     { href: '/features', label: 'Fitur' },
-    { href: '/about', label: 'Tentang' },
+    { href: '/about', label: 'Tentang'},
   ];
 
   return (
@@ -24,7 +24,7 @@ export default function LandingNavbar() {
             <div className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
               <span className="text-indigo-600 font-bold text-sm">Q</span>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
+            <span className="text-xl font-bold text-indigo-600 tracking-tight drop-shadow-sm">
               Quizzy
             </span>
           </Link>
@@ -35,7 +35,7 @@ export default function LandingNavbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-4 py-1.5 text-sm font-medium text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-all duration-200"
+                className="relative px-4 py-1.5 text-sm font-medium text-white hover:text-indigo-600 rounded-full hover:bg-white/10 transition-all duration-200"
               >
                 {link.label}
               </Link>
