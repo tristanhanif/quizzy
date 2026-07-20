@@ -39,12 +39,30 @@ export default function AdminDashboardPage() {
           adminService.getMaintenanceMode(),
           adminService.getBroadcast(),
         ]);
-        if (statsData.status === 'fulfilled') setStats(statsData.value);
-        if (usersData.status === 'fulfilled') setUsers(usersData.value.data || []);
-        if (quizzesData.status === 'fulfilled') setQuizzes(quizzesData.value.data || []);
-        if (sessionsData.status === 'fulfilled') setActiveSessions(sessionsData.value.count || 0);
-        if (maintenanceData.status === 'fulfilled') setMaintenanceMode(maintenanceData.value.enabled || false);
-        if (broadcastData.status === 'fulfilled') setBroadcast(broadcastData.value || { active: false, message: '' });
+        if (statsData.status === 'fulfilled') {
+          const payload = statsData.value?.data || statsData.value;
+          setStats(payload);
+        }
+        if (usersData.status === 'fulfilled') {
+          const payload = usersData.value?.data || usersData.value;
+          setUsers(Array.isArray(payload) ? payload : []);
+        }
+        if (quizzesData.status === 'fulfilled') {
+          const payload = quizzesData.value?.data || quizzesData.value;
+          setQuizzes(Array.isArray(payload) ? payload : []);
+        }
+        if (sessionsData.status === 'fulfilled') {
+          const payload = sessionsData.value?.data || sessionsData.value;
+          setActiveSessions(payload?.count || 0);
+        }
+        if (maintenanceData.status === 'fulfilled') {
+          const payload = maintenanceData.value?.data || maintenanceData.value;
+          setMaintenanceMode(payload?.enabled || false);
+        }
+        if (broadcastData.status === 'fulfilled') {
+          const payload = broadcastData.value?.data || broadcastData.value;
+          setBroadcast(payload || { active: false, message: '' });
+        }
       } catch (err) {
         console.error('Failed to fetch admin data:', err);
       } finally {
@@ -137,14 +155,14 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div className="bg-slate-900 rounded-xl p-8 text-white">
         <div className="flex items-center gap-3 mb-2">
-          <svg className="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
           </svg>
           <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
         </div>
         <p className="text-slate-400">Kendali penuh atas platform Quizzy</p>
         <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-mono">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
           <span className="text-slate-300">Super Admin Mode</span>
         </div>
       </div>
@@ -190,8 +208,8 @@ export default function AdminDashboardPage() {
             </div>
             <div className="bg-white border border-slate-200 rounded-xl p-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50">
-                  <svg className="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-50">
+                  <svg className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-900 tabular-nums">{stats?.totalQuizzes || 0}</p>
@@ -201,8 +219,8 @@ export default function AdminDashboardPage() {
             </div>
             <div className="bg-white border border-slate-200 rounded-xl p-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-50">
-                  <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-50">
+                  <svg className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-900 tabular-nums">{stats?.totalSessions || 0}</p>
@@ -212,8 +230,8 @@ export default function AdminDashboardPage() {
             </div>
             <div className="bg-white border border-slate-200 rounded-xl p-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-red-50">
-                  <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /><circle cx="12" cy="12" r="3" /></svg>
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-50">
+                  <svg className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-900 tabular-nums">{activeSessions}</p>
@@ -228,7 +246,7 @@ export default function AdminDashboardPage() {
             <h2 className="text-lg font-bold text-slate-900 mb-4">Users by Role</h2>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-4 bg-slate-50 rounded-lg">
-                <p className="text-2xl font-bold text-red-600">{stats?.usersByRole?.admin || 0}</p>
+                <p className="text-2xl font-bold text-slate-900">{stats?.usersByRole?.admin || 0}</p>
                 <p className="text-sm text-slate-500">Admin</p>
               </div>
               <div className="text-center p-4 bg-slate-50 rounded-lg">
@@ -236,7 +254,7 @@ export default function AdminDashboardPage() {
                 <p className="text-sm text-slate-500">Creator</p>
               </div>
               <div className="text-center p-4 bg-slate-50 rounded-lg">
-                <p className="text-2xl font-bold text-emerald-600">{stats?.usersByRole?.participant || 0}</p>
+                <p className="text-2xl font-bold text-slate-700">{stats?.usersByRole?.participant || 0}</p>
                 <p className="text-sm text-slate-500">Participant</p>
               </div>
             </div>
@@ -274,7 +292,7 @@ export default function AdminDashboardPage() {
                     <td className="px-6 py-4 text-sm font-mono text-slate-600">{u.displayId || '-'}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        u.role === 'ADMIN' ? 'bg-red-50 text-red-700' :
+                        u.role === 'ADMIN' ? 'bg-slate-900 text-white' :
                         u.role === 'CREATOR' ? 'bg-indigo-50 text-indigo-700' :
                         'bg-slate-100 text-slate-700'
                       }`}>
@@ -287,7 +305,7 @@ export default function AdminDashboardPage() {
                         <button
                           onClick={() => handleDeleteUser(u.id, u.name)}
                           disabled={actionLoading === u.id}
-                          className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
+                          className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100 transition-colors disabled:opacity-50"
                         >
                           {actionLoading === u.id ? '...' : 'Hapus'}
                         </button>
@@ -336,7 +354,7 @@ export default function AdminDashboardPage() {
                     <td className="px-6 py-4 text-sm text-slate-600">{q.questionCount}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        q.isPublic ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                        q.isPublic ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-700'
                       }`}>
                         {q.isPublic ? 'Publik' : 'Privat'}
                       </span>
@@ -345,7 +363,7 @@ export default function AdminDashboardPage() {
                       <button
                         onClick={() => handleForceDeleteQuiz(q.id, q.title)}
                         disabled={actionLoading === q.id}
-                        className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
+                        className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-medium hover:bg-indigo-100 transition-colors disabled:opacity-50"
                       >
                         {actionLoading === q.id ? '...' : 'Hapus'}
                       </button>
@@ -379,7 +397,7 @@ export default function AdminDashboardPage() {
                 onClick={handleToggleMaintenance}
                 disabled={actionLoading === 'maintenance'}
                 className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                  maintenanceMode ? 'bg-red-600' : 'bg-slate-300'
+                  maintenanceMode ? 'bg-indigo-600' : 'bg-slate-300'
                 }`}
               >
                 <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow ${
@@ -388,8 +406,8 @@ export default function AdminDashboardPage() {
               </button>
             </div>
             {maintenanceMode && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <p className="text-sm text-red-700 font-medium">
+              <div className="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+                <p className="text-sm text-indigo-700 font-medium">
                   ⚠️ Maintenance mode aktif. Semua pengguna melihat halaman "Server sedang dalam perbaikan".
                 </p>
               </div>
@@ -410,7 +428,7 @@ export default function AdminDashboardPage() {
                 <button
                   onClick={handleClearBroadcast}
                   disabled={actionLoading === 'broadcast'}
-                  className="text-xs text-red-600 hover:text-red-700 font-medium"
+                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
                 >
                   Hapus
                 </button>
@@ -423,7 +441,7 @@ export default function AdminDashboardPage() {
                 placeholder="Pesan broadcast..."
                 value={broadcastInput}
                 onChange={(e) => setBroadcastInput(e.target.value)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
               />
               <button
                 onClick={handleSendBroadcast}
