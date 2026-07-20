@@ -83,6 +83,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    let displayId = userData.displayId;
+    if (!displayId && userData.role) {
+      displayId = generateDisplayId(userData.role);
+      await userDoc.ref.update({ displayId, updatedAt: new Date() });
+    }
+
     const token = this.generateToken({
       sub: userDoc.id,
       email: userData.email,
@@ -91,7 +97,7 @@ export class AuthService {
 
     return {
       accessToken: token,
-      user: { id: userDoc.id, name: userData.fullName, role: userData.role, displayId: userData.displayId },
+      user: { id: userDoc.id, name: userData.fullName, role: userData.role, displayId },
     };
   }
 
@@ -141,6 +147,12 @@ export class AuthService {
       });
 
       const needsRoleSelection = userData.role === null;
+
+      let displayId = userData.displayId;
+      if (!displayId && userData.role) {
+        displayId = generateDisplayId(userData.role);
+        await userDoc.ref.update({ displayId, updatedAt: new Date() });
+      }
 
       const token = this.generateToken({
         sub: userDoc.id,
@@ -295,9 +307,12 @@ export class AuthService {
       role: 'ADMIN',
     });
 
+    const userDoc = await usersRef.doc(userId).get();
+    const displayId = userDoc.data()?.displayId;
+
     return {
       accessToken: token,
-      user: { id: userId, name: admin.name, role: 'ADMIN' },
+      user: { id: userId, name: admin.name, role: 'ADMIN', displayId },
     };
   }
 }

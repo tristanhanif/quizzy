@@ -1,5 +1,13 @@
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+export function formatDate(dateString: string | { seconds?: number; nanoseconds?: number } | Date): string {
+  let date: Date;
+  if (dateString instanceof Date) {
+    date = dateString;
+  } else if (typeof dateString === 'object' && dateString.seconds) {
+    date = new Date(dateString.seconds * 1000);
+  } else {
+    date = new Date(String(dateString));
+  }
+  if (isNaN(date.getTime())) return '-';
   return new Intl.DateTimeFormat('id-ID', {
     day: 'numeric',
     month: 'long',

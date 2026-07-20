@@ -12,8 +12,8 @@ export const userService = {
     return data;
   },
 
-  async sendMutualRequest(targetUserId: string): Promise<ApiResponse<{ id: string; message: string }>> {
-    const { data } = await api.post('/users/mutual', { targetUserId });
+  async sendMutualRequest(targetDisplayId: string): Promise<ApiResponse<{ id: string; message: string }>> {
+    const { data } = await api.post('/users/mutual', { targetDisplayId });
     return data;
   },
 

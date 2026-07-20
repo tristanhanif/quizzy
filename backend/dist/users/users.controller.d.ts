@@ -23,7 +23,7 @@ export declare class UsersController {
         createdAt: any;
     }>;
     sendMutualRequest(req: any, body: {
-        targetUserId: string;
+        targetDisplayId: string;
     }): Promise<{
         id: string;
         message: string;

@@ -279,7 +279,7 @@ export default function DashboardPage() {
           <div>
             <h2 className="text-xl font-bold text-slate-900">Quiz Tersedia</h2>
             <p className="text-sm text-slate-500 mt-0.5">
-              {isLoading ? 'Memuat...' : `${quizzes?.length || 0} quiz ditemukan`}
+              {isLoading ? '' : `${quizzes?.length || 0} quiz ditemukan`}
             </p>
           </div>
           {(isCreator || isAdmin) && (

@@ -31,8 +31,8 @@ export class UsersController {
 
   @Post('mutual')
   @HttpCode(HttpStatus.CREATED)
-  async sendMutualRequest(@Request() req, @Body() body: { targetUserId: string }) {
-    return this.usersService.sendMutualRequest(req.user.userId, body.targetUserId);
+  async sendMutualRequest(@Request() req, @Body() body: { targetDisplayId: string }) {
+    return this.usersService.sendMutualRequest(req.user.userId, body.targetDisplayId);
   }
 
   @Post('mutual/accept')

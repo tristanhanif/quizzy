@@ -67,19 +67,39 @@ export class UsersService {
     };
   }
 
-  async sendMutualRequest(senderId: string, targetUserId: string) {
+  async sendMutualRequest(senderId: string, targetDisplayId: string) {
+    if (!targetDisplayId) {
+      throw new BadRequestException('Target display ID is required');
+    }
+
+    const senderDoc = await this.usersRef.doc(senderId).get();
+    if (!senderDoc.exists) {
+      throw new NotFoundException('Sender not found');
+    }
+    const senderData = senderDoc.data();
+    if (senderData.role !== 'PARTICIPANT') {
+      throw new BadRequestException('Only participants can add friends');
+    }
+
+    const targetSnapshot = await this.usersRef
+      .where('displayId', '==', targetDisplayId.toUpperCase())
+      .limit(1)
+      .get();
+
+    if (targetSnapshot.empty) {
+      throw new NotFoundException('Target user not found');
+    }
+
+    const targetDoc = targetSnapshot.docs[0];
+    const targetUserId = targetDoc.id;
+    const targetData = targetDoc.data();
+
     if (senderId === targetUserId) {
       throw new BadRequestException('Cannot send mutual request to yourself');
     }
 
-    const targetDoc = await this.usersRef.doc(targetUserId).get();
-    if (!targetDoc.exists) {
-      throw new NotFoundException('Target user not found');
-    }
-
-    const targetData = targetDoc.data();
-    if (targetData.role === null) {
-      throw new BadRequestException('Target user has not completed registration');
+    if (targetData.role !== 'PARTICIPANT') {
+      throw new BadRequestException('Only participants can add friends');
     }
 
     const existing = await this.mutualsRef
@@ -110,6 +130,11 @@ export class UsersService {
   }
 
   async acceptMutualRequest(userId: string, mutualId: string) {
+    const userDoc = await this.usersRef.doc(userId).get();
+    if (!userDoc.exists || userDoc.data().role !== 'PARTICIPANT') {
+      throw new BadRequestException('Only participants can manage friend requests');
+    }
+
     const mutualDoc = await this.mutualsRef.doc(mutualId).get();
     if (!mutualDoc.exists) {
       throw new NotFoundException('Mutual request not found');
@@ -138,6 +163,11 @@ export class UsersService {
   }
 
   async declineMutualRequest(userId: string, mutualId: string) {
+    const userDoc = await this.usersRef.doc(userId).get();
+    if (!userDoc.exists || userDoc.data().role !== 'PARTICIPANT') {
+      throw new BadRequestException('Only participants can manage friend requests');
+    }
+
     const mutualDoc = await this.mutualsRef.doc(mutualId).get();
     if (!mutualDoc.exists) {
       throw new NotFoundException('Mutual request not found');
@@ -158,6 +188,11 @@ export class UsersService {
   }
 
   async removeMutual(userId: string, mutualId: string) {
+    const userDoc = await this.usersRef.doc(userId).get();
+    if (!userDoc.exists || userDoc.data().role !== 'PARTICIPANT') {
+      throw new BadRequestException('Only participants can manage friends');
+    }
+
     const mutualDoc = await this.mutualsRef.doc(mutualId).get();
     if (!mutualDoc.exists) {
       throw new NotFoundException('Mutual not found');
