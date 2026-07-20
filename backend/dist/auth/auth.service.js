@@ -75,6 +75,11 @@ let AuthService = class AuthService {
         if (!isPasswordValid) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
+        let displayId = userData.displayId;
+        if (!displayId && userData.role) {
+            displayId = (0, display_id_1.generateDisplayId)(userData.role);
+            await userDoc.ref.update({ displayId, updatedAt: new Date() });
+        }
         const token = this.generateToken({
             sub: userDoc.id,
             email: userData.email,
@@ -82,7 +87,7 @@ let AuthService = class AuthService {
         });
         return {
             accessToken: token,
-            user: { id: userDoc.id, name: userData.fullName, role: userData.role, displayId: userData.displayId },
+            user: { id: userDoc.id, name: userData.fullName, role: userData.role, displayId },
         };
     }
     async getProfile(userId) {
@@ -122,6 +127,11 @@ let AuthService = class AuthService {
                 updatedAt: new Date(),
             });
             const needsRoleSelection = userData.role === null;
+            let displayId = userData.displayId;
+            if (!displayId && userData.role) {
+                displayId = (0, display_id_1.generateDisplayId)(userData.role);
+                await userDoc.ref.update({ displayId, updatedAt: new Date() });
+            }
             const token = this.generateToken({
                 sub: userDoc.id,
                 email,
@@ -244,9 +254,11 @@ let AuthService = class AuthService {
             email: dto.email,
             role: 'ADMIN',
         });
+        const userDoc = await usersRef.doc(userId).get();
+        const displayId = userDoc.data()?.displayId;
         return {
             accessToken: token,
-            user: { id: userId, name: admin.name, role: 'ADMIN' },
+            user: { id: userId, name: admin.name, role: 'ADMIN', displayId },
         };
     }
 };

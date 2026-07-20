@@ -24,7 +24,7 @@ export declare class UsersService {
         provider: any;
         createdAt: any;
     }>;
-    sendMutualRequest(senderId: string, targetUserId: string): Promise<{
+    sendMutualRequest(senderId: string, targetDisplayId: string): Promise<{
         id: string;
         message: string;
     }>;

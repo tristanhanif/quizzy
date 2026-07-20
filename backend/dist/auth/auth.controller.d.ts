@@ -36,6 +36,7 @@ export declare class AuthController {
             id: string;
             name: string;
             role: string;
+            displayId: any;
         };
     }>;
     getProfile(req: any): Promise<{

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { userService } from '@/services/user.service';
+import { UserRole } from '@/types';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import type { MutualUser } from '@/types';
 
@@ -70,10 +71,10 @@ export default function FriendsPage() {
     }
   };
 
-  const handleSendRequest = async (targetUserId: string) => {
-    setActionLoading(targetUserId);
+  const handleSendRequest = async (targetDisplayId: string) => {
+    setActionLoading(targetDisplayId);
     try {
-      await userService.sendMutualRequest(targetUserId);
+      await userService.sendMutualRequest(targetDisplayId);
       await loadData();
       setSearchResult(null);
       setSearchQuery('');
@@ -422,11 +423,11 @@ export default function FriendsPage() {
                 </div>
                 {searchResult.id !== user?.id && (
                   <button
-                    onClick={() => handleSendRequest(searchResult.id)}
-                    disabled={actionLoading === searchResult.id}
+                    onClick={() => handleSendRequest(searchResult.displayId)}
+                    disabled={actionLoading === searchResult.displayId}
                     className="shrink-0 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
                   >
-                    {actionLoading === searchResult.id ? '...' : 'Tambah Teman'}
+                    {actionLoading === searchResult.displayId ? '...' : 'Tambah Teman'}
                   </button>
                 )}
               </div>

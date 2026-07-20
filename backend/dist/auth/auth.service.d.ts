@@ -66,6 +66,7 @@ export declare class AuthService {
             id: string;
             name: string;
             role: string;
+            displayId: any;
         };
     }>;
 }

@@ -27,7 +27,7 @@ let UsersController = class UsersController {
         return this.usersService.getUserProfile(displayId);
     }
     async sendMutualRequest(req, body) {
-        return this.usersService.sendMutualRequest(req.user.userId, body.targetUserId);
+        return this.usersService.sendMutualRequest(req.user.userId, body.targetDisplayId);
     }
     async acceptMutualRequest(req, body) {
         return this.usersService.acceptMutualRequest(req.user.userId, body.mutualId);
