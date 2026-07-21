@@ -866,9 +866,9 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                     transition-all duration-200 min-h-[80px] md:min-h-[100px]
                     ${
                       showCorrectHighlight
-                        ? 'bg-indigo-600 text-white scale-[1.02] shadow-lg shadow-indigo-600/20'
+                        ? 'bg-emerald-500 text-white scale-[1.02] shadow-lg shadow-emerald-500/20'
                         : showWrongHighlight
-                          ? 'bg-slate-100 text-slate-400 opacity-60'
+                          ? 'bg-red-500 text-white scale-[1.02] shadow-lg shadow-red-500/20'
                           : isSelected
                             ? `${getChoiceColor()} scale-[1.02] shadow-lg border-indigo-400`
                             : `${getChoiceColor()} active:scale-[0.98]`
@@ -886,7 +886,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                     </svg>
                   )}
                   {showWrongHighlight && (
-                    <svg className="w-6 h-6 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-6 h-6 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   )}
@@ -916,8 +916,8 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                       ? 'bg-indigo-600 scale-125 ring-2 ring-indigo-200'
                       : i < questionIndex
                         ? answerForStep && answerForStep.score > 0
-                          ? 'bg-indigo-600'
-                          : 'bg-slate-300'
+                          ? 'bg-emerald-500'
+                          : 'bg-red-400'
                         : 'bg-slate-200'
                   }`}
                 />

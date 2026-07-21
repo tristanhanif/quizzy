@@ -52,9 +52,9 @@ export default function QuestionCard({
           let borderClass = 'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50';
           if (showResult) {
             if (isCorrectAnswer) {
-              borderClass = 'border-indigo-500 bg-indigo-50';
+              borderClass = 'border-green-500 bg-green-50';
             } else if (isSelected && !isCorrectAnswer) {
-              borderClass = 'border-gray-400 bg-gray-100';
+              borderClass = 'border-red-400 bg-red-50';
             }
           } else if (isSelected) {
             borderClass = 'border-indigo-500 bg-indigo-50';
@@ -72,12 +72,12 @@ export default function QuestionCard({
               </span>
               <span className="text-gray-900">{choice}</span>
               {showResult && isCorrectAnswer && (
-                <svg className="w-5 h-5 text-indigo-600 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-green-600 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               )}
               {showResult && isSelected && !isCorrectAnswer && (
-                <svg className="w-5 h-5 text-gray-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-red-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               )}
@@ -87,7 +87,7 @@ export default function QuestionCard({
       </div>
 
       {showResult && (
-        <div className={`mt-4 p-3 rounded-xl text-sm ${isCorrect ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-100 text-gray-700'}`}>
+        <div className={`mt-4 p-3 rounded-xl text-sm ${isCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
           {isCorrect ? `Correct! +${question.points} points` : `Incorrect. The correct answer is: ${question.correctAnswer}`}
         </div>
       )}
