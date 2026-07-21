@@ -98,7 +98,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
   const [remainingTime, setRemainingTime] = useState<number>(0);
   const quizQuestionsRef = useRef<Question[]>([]);
   const advanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [answeredParticipants, setAnsweredParticipants] = useState<{ id: string; name: string }[]>([]);
+  const [answeredParticipants, setAnsweredParticipants] = useState<{ id: string; name: string; answer?: string }[]>([]);
 
   const isCreator = user?.role === UserRole.CREATOR;
   const isOwner = sessionData?.creatorId === user?.id;
@@ -239,7 +239,21 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
       if (data.userId && data.userId !== user?.id) {
         setAnsweredParticipants((prev) => {
           if (prev.some((p) => p.id === data.userId)) return prev;
-          return [...prev, { id: data.userId, name: data.participantName || `Peserta` }];
+          const newList = [
+            ...prev,
+            {
+              id: data.userId,
+              name: data.participantName || `Peserta`,
+              answer: data.answer,
+            },
+          ];
+
+          // Jika semua peserta sudah menjawab, hentikan countdown timer dan tampilkan hasil langsung di sisi host
+          if (participants.length > 0 && newList.length === participants.length) {
+            setShowResult(true);
+          }
+
+          return newList;
         });
       }
     };
@@ -257,7 +271,7 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
       off('participant_joined', handleParticipantJoined);
       off('answer_submitted', handleAnswerSubmitted);
     };
-  }, [isConnected, on, off, user?.id]);
+  }, [isConnected, on, off, user?.id, participants]);
 
   // Cleanup advance timeout on unmount
   useEffect(() => {
@@ -310,6 +324,24 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
     }
   }, [questionIndex, totalQuestions]);
 
+  const submitParticipantResult = useCallback(
+    async (currentAnswers: typeof answers) => {
+      if (!sessionData || !user) return;
+      const totalScore = currentAnswers.reduce((sum, a) => sum + a.score, 0);
+      try {
+        await submitResult.mutateAsync({
+          sessionId: sessionData.id,
+          totalScore,
+          answers: currentAnswers,
+        });
+        console.log('Final results submitted successfully');
+      } catch (err) {
+        console.error('Failed to submit final result:', err);
+      }
+    },
+    [sessionData, user, submitResult]
+  );
+
   const handleAnswer = useCallback(
     (answer: string) => {
       if (!currentQuestion || !user || showResult) return;
@@ -321,10 +353,11 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
       setLastAnswerCorrect(isCorrect);
       setShowResult(true);
 
-      setAnswers((prev) => {
-        const filtered = prev.filter((a) => a.questionId !== currentQuestion.questionId);
-        return [...filtered, { questionId: currentQuestion.questionId, answer, score }];
-      });
+      const newAnswers = [
+        ...answers.filter((a) => a.questionId !== currentQuestion.questionId),
+        { questionId: currentQuestion.questionId, answer, score }
+      ];
+      setAnswers(newAnswers);
 
       emit('submit_answer', {
         roomCode,
@@ -333,29 +366,39 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
         answer,
       });
 
+      if (questionIndex === totalQuestions - 1) {
+        submitParticipantResult(newAnswers);
+      }
+
       if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
       advanceTimeoutRef.current = setTimeout(() => {
         advanceToNextQuestion();
       }, 1200);
     },
-    [currentQuestion, user, roomCode, emit, showResult, advanceToNextQuestion]
+    [currentQuestion, user, roomCode, emit, showResult, advanceToNextQuestion, answers, questionIndex, totalQuestions, submitParticipantResult]
   );
 
   const handleTimeUp = useCallback(() => {
     if (!showResult && currentQuestion) {
       setLastAnswerCorrect(false);
       setShowResult(true);
-      setAnswers((prev) => {
-        if (prev.some((a) => a.questionId === currentQuestion.questionId)) return prev;
-        return [...prev, { questionId: currentQuestion.questionId, answer: '', score: 0 }];
-      });
+
+      const newAnswers = [
+        ...answers.filter((a) => a.questionId !== currentQuestion.questionId),
+        { questionId: currentQuestion.questionId, answer: '', score: 0 }
+      ];
+      setAnswers(newAnswers);
+
+      if (questionIndex === totalQuestions - 1) {
+        submitParticipantResult(newAnswers);
+      }
 
       if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
       advanceTimeoutRef.current = setTimeout(() => {
         advanceToNextQuestion();
       }, 1200);
     }
-  }, [showResult, currentQuestion, advanceToNextQuestion]);
+  }, [showResult, currentQuestion, advanceToNextQuestion, answers, questionIndex, totalQuestions, submitParticipantResult]);
 
   const handleSubmitQuiz = async () => {
     if (!sessionData || !user) return;
@@ -720,7 +763,8 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
             ) : (
               <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                 {participants.map((p) => {
-                  const hasAnswered = answeredParticipants.some((a) => a.id === p.id);
+                  const answeredInfo = answeredParticipants.find((a) => a.id === p.id);
+                  const hasAnswered = !!answeredInfo;
                   return (
                     <div key={p.id} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
                       <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
@@ -738,7 +782,9 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
                       </div>
                       <span className="text-sm font-medium text-slate-700 flex-1">{p.name}</span>
                       <span className={`text-xs font-medium ${hasAnswered ? 'text-emerald-600' : 'text-slate-400'}`}>
-                        {hasAnswered ? 'Selesai' : 'Menjawab...'}
+                        {hasAnswered
+                          ? `Selesai ${answeredInfo.answer ? `(Jawaban: ${answeredInfo.answer})` : ''}`
+                          : 'Menjawab...'}
                       </span>
                     </div>
                   );
