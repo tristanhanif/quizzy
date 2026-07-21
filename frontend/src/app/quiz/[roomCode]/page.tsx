@@ -127,7 +127,10 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
         try {
           await sessionService.join(roomCode);
         } catch (err: any) {
-          if (err?.response?.data?.message !== 'You are already in this session') {
+          const msg = err?.response?.data?.message;
+          const isAlreadyJoined = msg === 'You are already in this session'
+            || (Array.isArray(msg) && msg.includes('You are already in this session'));
+          if (!isAlreadyJoined) {
             console.error('Failed to join session:', err);
             return;
           }
