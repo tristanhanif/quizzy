@@ -76,7 +76,7 @@ let ParticipantGateway = ParticipantGateway_1 = class ParticipantGateway {
                 participantCount: session.participants.length,
             };
             this.server.to(roomCode).emit('participant_joined', participantData);
-            this.server.of('/host').to(roomCode).emit('participant_joined', participantData);
+            this.server.server.of('/host').to(roomCode).emit('participant_joined', participantData);
             return { success: true, message: 'Joined room' };
         }
         catch (error) {
