@@ -144,12 +144,14 @@ export class ParticipantGateway
         }
       } catch {}
 
-      this.server.to(roomCode).emit('answer_submitted', {
+      const answerSubmittedData = {
         userId,
         participantName,
         questionId,
         timestamp: new Date(),
-      });
+      };
+      this.server.to(roomCode).emit('answer_submitted', answerSubmittedData);
+      (this.server as any).server.of('/host').to(roomCode).emit('answer_submitted', answerSubmittedData);
 
       return { success: true, message: 'Answer submitted' };
     } catch (error) {

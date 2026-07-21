@@ -127,12 +127,14 @@ export class HostGateway
       const quiz = await this.quizzesService.findOne(session.quizId);
       const firstQuestion = quiz.questions[0];
 
-      this.server.to(roomCode).emit('quiz_started', {
+      const quizStartedData = {
         roomCode,
         question: firstQuestion,
         questionIndex: 0,
         totalQuestions: quiz.questions.length,
-      });
+      };
+      this.server.to(roomCode).emit('quiz_started', quizStartedData);
+      (this.server as any).server.of('/participant').to(roomCode).emit('quiz_started', quizStartedData);
 
       return { success: true, message: 'Quiz started' };
     } catch (error) {
@@ -167,10 +169,12 @@ export class HostGateway
           session.id,
         );
 
-        this.server.to(roomCode).emit('quiz_finished', {
+        const quizFinishedData = {
           roomCode,
           leaderboard: leaderboard.data,
-        });
+        };
+        this.server.to(roomCode).emit('quiz_finished', quizFinishedData);
+        (this.server as any).server.of('/participant').to(roomCode).emit('quiz_finished', quizFinishedData);
 
         return { success: true, message: 'Quiz finished' };
       }
@@ -179,12 +183,14 @@ export class HostGateway
 
       const nextQuestion = quiz.questions[nextIndex];
 
-      this.server.to(roomCode).emit('new_question', {
+      const newQuestionData = {
         roomCode,
         question: nextQuestion,
         questionIndex: nextIndex,
         totalQuestions: quiz.questions.length,
-      });
+      };
+      this.server.to(roomCode).emit('new_question', newQuestionData);
+      (this.server as any).server.of('/participant').to(roomCode).emit('new_question', newQuestionData);
 
       return { success: true, message: 'Next question sent' };
     } catch (error) {
@@ -213,10 +219,12 @@ export class HostGateway
 
       const leaderboard = await this.resultsService.getLeaderboard(session.id);
 
-      this.server.to(roomCode).emit('quiz_finished', {
+      const quizFinishedData = {
         roomCode,
         leaderboard: leaderboard.data,
-      });
+      };
+      this.server.to(roomCode).emit('quiz_finished', quizFinishedData);
+      (this.server as any).server.of('/participant').to(roomCode).emit('quiz_finished', quizFinishedData);
 
       this.hostRooms.delete(client.id);
 

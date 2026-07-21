@@ -35,27 +35,29 @@ function CountdownTimer({
 
   useEffect(() => {
     setTimeLeft(duration);
-    onTickRef.current?.(duration);
+    Promise.resolve().then(() => {
+      onTickRef.current?.(duration);
+    });
   }, [duration]);
 
   useEffect(() => {
     if (!isActive || timeLeft <= 0) return;
 
     const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        const nextTime = prev - 1;
-        onTickRef.current?.(nextTime);
-        if (nextTime <= 0) {
-          clearInterval(interval);
-          onTimeUpRef.current?.();
-          return 0;
-        }
-        return nextTime;
-      });
+      setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
 
     return () => clearInterval(interval);
   }, [isActive, timeLeft]);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      onTickRef.current?.(timeLeft);
+      if (timeLeft <= 0) {
+        onTimeUpRef.current?.();
+      }
+    });
+  }, [timeLeft]);
 
   return (
     <span
@@ -127,7 +129,12 @@ export default function QuizArenaPage({ params }: { params: Promise<{ roomCode: 
         try {
           await sessionService.join(roomCode);
         } catch (err: any) {
-          if (err?.response?.data?.message !== 'You are already in this session') {
+          const errMsg = err?.response?.data?.message;
+          const isAlreadyInSession = Array.isArray(errMsg)
+            ? errMsg.includes('You are already in this session')
+            : errMsg === 'You are already in this session';
+
+          if (!isAlreadyInSession) {
             console.error('Failed to join session:', err);
             return;
           }
