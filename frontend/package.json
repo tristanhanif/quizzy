@@ -2,13 +2,13 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build",
-    "start": "next start",
-    "lint": "echo 'No linting'"
-  },
-  "dependencies": {
+"scripts": {
+  "dev": "next dev -p 3001",
+  "build": "next build --debug",
+  "start": "next start",
+  "lint": "echo 'No linting'"
+},  
+"dependencies": {
     "@tanstack/react-query": "^5.101.2",
     "axios": "^1.18.1",
     "class-transformer": "^0.5.1",
