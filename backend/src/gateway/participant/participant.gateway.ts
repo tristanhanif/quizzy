@@ -14,6 +14,7 @@ import * as jwt from 'jsonwebtoken';
 import { SessionsService } from '../../sessions/sessions.service';
 import { ResultsService } from '../../results/results.service';
 import { UsersService } from '../../users/users.service';
+import { HostGateway } from '../host/host.gateway';
 
 @WebSocketGateway({
   namespace: '/participant',
@@ -34,6 +35,7 @@ export class ParticipantGateway
     private readonly sessionsService: SessionsService,
     private readonly resultsService: ResultsService,
     private readonly usersService: UsersService,
+    private readonly hostGateway: HostGateway,
   ) {}
 
   afterInit(server: Server) {
