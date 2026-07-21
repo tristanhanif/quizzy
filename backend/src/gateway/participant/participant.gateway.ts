@@ -98,7 +98,7 @@ export class ParticipantGateway
       };
 
       this.server.to(roomCode).emit('participant_joined', participantData);
-      this.server.of('/host').to(roomCode).emit('participant_joined', participantData);
+      (this.server as any).server.of('/host').to(roomCode).emit('participant_joined', participantData);
 
       return { success: true, message: 'Joined room' };
     } catch (error) {
