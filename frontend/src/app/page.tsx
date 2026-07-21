@@ -23,3 +23,6 @@ export default function HomePage() {
     </div>
   );
 }
+
+// Tambahkan baris ini di paling bawah agar Next.js tidak memaksa SSG saat build
+export const dynamic = 'force-dynamic';
