@@ -4,9 +4,10 @@ import { ParticipantGateway } from './participant/participant.gateway';
 import { SessionsModule } from '../sessions/sessions.module';
 import { QuizzesModule } from '../quizzes/quizzes.module';
 import { ResultsModule } from '../results/results.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [SessionsModule, QuizzesModule, ResultsModule],
+  imports: [SessionsModule, QuizzesModule, ResultsModule, UsersModule],
   providers: [HostGateway, ParticipantGateway],
   exports: [HostGateway, ParticipantGateway],
 })

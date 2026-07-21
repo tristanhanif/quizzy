@@ -20,10 +20,12 @@ const common_1 = require("@nestjs/common");
 const jwt = require("jsonwebtoken");
 const sessions_service_1 = require("../../sessions/sessions.service");
 const results_service_1 = require("../../results/results.service");
+const users_service_1 = require("../../users/users.service");
 let ParticipantGateway = ParticipantGateway_1 = class ParticipantGateway {
-    constructor(sessionsService, resultsService) {
+    constructor(sessionsService, resultsService, usersService) {
         this.sessionsService = sessionsService;
         this.resultsService = resultsService;
+        this.usersService = usersService;
         this.logger = new common_1.Logger(ParticipantGateway_1.name);
         this.participantRooms = new Map();
     }
@@ -60,8 +62,17 @@ let ParticipantGateway = ParticipantGateway_1 = class ParticipantGateway {
             }
             client.join(roomCode);
             this.participantRooms.set(client.id, roomCode);
+            let participantName = 'Peserta';
+            try {
+                const userDoc = await this.usersService['usersRef'].doc(userId).get();
+                if (userDoc.exists) {
+                    participantName = userDoc.data()?.fullName || 'Peserta';
+                }
+            }
+            catch { }
             const participantData = {
                 participantId: userId,
+                participantName,
                 participantCount: session.participants.length,
             };
             this.server.to(roomCode).emit('participant_joined', participantData);
@@ -82,8 +93,17 @@ let ParticipantGateway = ParticipantGateway_1 = class ParticipantGateway {
                 return { error: 'Participant not found' };
             }
             const quizDoc = await this.sessionsService.findOne(session.id);
+            let participantName = 'Peserta';
+            try {
+                const userDoc = await this.usersService['usersRef'].doc(userId).get();
+                if (userDoc.exists) {
+                    participantName = userDoc.data()?.fullName || 'Peserta';
+                }
+            }
+            catch { }
             this.server.to(roomCode).emit('answer_submitted', {
                 userId,
+                participantName,
                 questionId,
                 timestamp: new Date(),
             });
@@ -154,6 +174,7 @@ exports.ParticipantGateway = ParticipantGateway = ParticipantGateway_1 = __decor
         },
     }),
     __metadata("design:paramtypes", [sessions_service_1.SessionsService,
-        results_service_1.ResultsService])
+        results_service_1.ResultsService,
+        users_service_1.UsersService])
 ], ParticipantGateway);
 //# sourceMappingURL=participant.gateway.js.map

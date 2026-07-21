@@ -13,6 +13,7 @@ import { Logger } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { SessionsService } from '../../sessions/sessions.service';
 import { ResultsService } from '../../results/results.service';
+import { UsersService } from '../../users/users.service';
 
 @WebSocketGateway({
   namespace: '/participant',
@@ -32,6 +33,7 @@ export class ParticipantGateway
   constructor(
     private readonly sessionsService: SessionsService,
     private readonly resultsService: ResultsService,
+    private readonly usersService: UsersService,
   ) {}
 
   afterInit(server: Server) {
@@ -81,8 +83,17 @@ export class ParticipantGateway
       client.join(roomCode);
       this.participantRooms.set(client.id, roomCode);
 
+      let participantName = 'Peserta';
+      try {
+        const userDoc = await this.usersService['usersRef'].doc(userId).get();
+        if (userDoc.exists) {
+          participantName = userDoc.data()?.fullName || 'Peserta';
+        }
+      } catch {}
+
       const participantData = {
         participantId: userId,
+        participantName,
         participantCount: session.participants.length,
       };
 
@@ -125,8 +136,17 @@ export class ParticipantGateway
 
       const quizDoc = await this.sessionsService.findOne(session.id);
 
+      let participantName = 'Peserta';
+      try {
+        const userDoc = await this.usersService['usersRef'].doc(userId).get();
+        if (userDoc.exists) {
+          participantName = userDoc.data()?.fullName || 'Peserta';
+        }
+      } catch {}
+
       this.server.to(roomCode).emit('answer_submitted', {
         userId,
+        participantName,
         questionId,
         timestamp: new Date(),
       });

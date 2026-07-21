@@ -14,6 +14,7 @@ import * as jwt from 'jsonwebtoken';
 import { SessionsService } from '../../sessions/sessions.service';
 import { QuizzesService } from '../../quizzes/quizzes.service';
 import { ResultsService } from '../../results/results.service';
+import { UsersService } from '../../users/users.service';
 import { SessionStatus } from '../../sessions/dto/create-session.dto';
 
 @WebSocketGateway({
@@ -35,6 +36,7 @@ export class HostGateway
     private readonly sessionsService: SessionsService,
     private readonly quizzesService: QuizzesService,
     private readonly resultsService: ResultsService,
+    private readonly usersService: UsersService,
   ) {}
 
   afterInit(server: Server) {
@@ -79,10 +81,18 @@ export class HostGateway
       client.join(roomCode);
       this.hostRooms.set(client.id, roomCode);
 
-      const participants = (session.participants || []).map((p: string) => ({
-        id: p,
-        name: `Peserta`,
-      }));
+      const participantIds: string[] = session.participants || [];
+      const participants = await Promise.all(
+        participantIds.map(async (pid: string) => {
+          try {
+            const userDoc = await this.usersService['usersRef'].doc(pid).get();
+            const name = userDoc.exists ? userDoc.data()?.fullName || 'Peserta' : 'Peserta';
+            return { id: pid, name };
+          } catch {
+            return { id: pid, name: 'Peserta' };
+          }
+        }),
+      );
 
       return {
         success: true,

@@ -21,12 +21,14 @@ const jwt = require("jsonwebtoken");
 const sessions_service_1 = require("../../sessions/sessions.service");
 const quizzes_service_1 = require("../../quizzes/quizzes.service");
 const results_service_1 = require("../../results/results.service");
+const users_service_1 = require("../../users/users.service");
 const create_session_dto_1 = require("../../sessions/dto/create-session.dto");
 let HostGateway = HostGateway_1 = class HostGateway {
-    constructor(sessionsService, quizzesService, resultsService) {
+    constructor(sessionsService, quizzesService, resultsService, usersService) {
         this.sessionsService = sessionsService;
         this.quizzesService = quizzesService;
         this.resultsService = resultsService;
+        this.usersService = usersService;
         this.logger = new common_1.Logger(HostGateway_1.name);
         this.hostRooms = new Map();
     }
@@ -63,9 +65,16 @@ let HostGateway = HostGateway_1 = class HostGateway {
             }
             client.join(roomCode);
             this.hostRooms.set(client.id, roomCode);
-            const participants = (session.participants || []).map((p) => ({
-                id: p,
-                name: `Peserta`,
+            const participantIds = session.participants || [];
+            const participants = await Promise.all(participantIds.map(async (pid) => {
+                try {
+                    const userDoc = await this.usersService['usersRef'].doc(pid).get();
+                    const name = userDoc.exists ? userDoc.data()?.fullName || 'Peserta' : 'Peserta';
+                    return { id: pid, name };
+                }
+                catch {
+                    return { id: pid, name: 'Peserta' };
+                }
             }));
             return {
                 success: true,
@@ -201,6 +210,7 @@ exports.HostGateway = HostGateway = HostGateway_1 = __decorate([
     }),
     __metadata("design:paramtypes", [sessions_service_1.SessionsService,
         quizzes_service_1.QuizzesService,
-        results_service_1.ResultsService])
+        results_service_1.ResultsService,
+        users_service_1.UsersService])
 ], HostGateway);
 //# sourceMappingURL=host.gateway.js.map

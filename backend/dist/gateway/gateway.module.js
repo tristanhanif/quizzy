@@ -13,12 +13,13 @@ const participant_gateway_1 = require("./participant/participant.gateway");
 const sessions_module_1 = require("../sessions/sessions.module");
 const quizzes_module_1 = require("../quizzes/quizzes.module");
 const results_module_1 = require("../results/results.module");
+const users_module_1 = require("../users/users.module");
 let GatewayModule = class GatewayModule {
 };
 exports.GatewayModule = GatewayModule;
 exports.GatewayModule = GatewayModule = __decorate([
     (0, common_1.Module)({
-        imports: [sessions_module_1.SessionsModule, quizzes_module_1.QuizzesModule, results_module_1.ResultsModule],
+        imports: [sessions_module_1.SessionsModule, quizzes_module_1.QuizzesModule, results_module_1.ResultsModule, users_module_1.UsersModule],
         providers: [host_gateway_1.HostGateway, participant_gateway_1.ParticipantGateway],
         exports: [host_gateway_1.HostGateway, participant_gateway_1.ParticipantGateway],
     })

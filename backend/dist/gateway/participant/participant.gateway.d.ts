@@ -2,13 +2,15 @@ import { OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs
 import { Server, Socket } from 'socket.io';
 import { SessionsService } from '../../sessions/sessions.service';
 import { ResultsService } from '../../results/results.service';
+import { UsersService } from '../../users/users.service';
 export declare class ParticipantGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     private readonly sessionsService;
     private readonly resultsService;
+    private readonly usersService;
     server: Server;
     private readonly logger;
     private participantRooms;
-    constructor(sessionsService: SessionsService, resultsService: ResultsService);
+    constructor(sessionsService: SessionsService, resultsService: ResultsService, usersService: UsersService);
     afterInit(server: Server): void;
     handleConnection(client: Socket): void;
     handleDisconnect(client: Socket): void;
